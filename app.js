@@ -7,8 +7,8 @@ const eventSurfaces = {
   'guild-hunt': '.notice-panel, #guild-schedule article:last-child',
   'ember-wars': '#ember-wars-view, [aria-labelledby="ember-callout-title"], nav a[href="#ember-wars"]',
   'arctic-showdown': '#arctic-showdown-view, nav a[href="#arctic-showdown"]',
-  'sandstorm-scuffle': '#sandstorm-scuffle-view, [aria-labelledby="sandstorm-callout-title"], nav a[href="#sandstorm-scuffle"]',
-  'guild-duel': '#guild-duel-view, nav a[href="#guild-duel"]',
+  'sandstorm-scuffle': '#sandstorm-scuffle-view, #sandstorm-players-view, #sandstorm-officers-view, [aria-labelledby="sandstorm-callout-title"], nav a[href="#sandstorm-scuffle"], #sandstorm-submenu, #sandstorm-submenu a',
+  'guild-duel': '#guild-duel-view, #guild-duel-players-view, #guild-duel-officers-view, nav a[href="#guild-duel"], #duel-submenu, #duel-submenu a',
 };
 for (const [event, selector] of Object.entries(eventSurfaces)) {
   document.querySelectorAll(selector).forEach(node => { node.dataset.event = event; });
@@ -19,8 +19,8 @@ const eventArtwork = [
   ['guild-hunt', '.notice-panel, #guild-schedule article:last-child'],
   ['ember-wars', '#ember-wars-view .ember-intro, [aria-labelledby="ember-callout-title"]'],
   ['arctic-showdown', '#arctic-showdown-view .ember-intro'],
-  ['sandstorm-scuffle', '#sandstorm-scuffle-view .ember-intro, [aria-labelledby="sandstorm-callout-title"]'],
-  ['guild-duel', '#guild-duel-view .ember-intro'],
+  ['sandstorm-scuffle', '#sandstorm-scuffle-view .ember-intro, #sandstorm-players-view .ember-intro, #sandstorm-officers-view .ember-intro, [aria-labelledby="sandstorm-callout-title"]'],
+  ['guild-duel', '#guild-duel-view .ember-intro, #guild-duel-players-view .ember-intro, #guild-duel-officers-view .ember-intro'],
 ];
 for (const [event, selector] of eventArtwork) {
   document.querySelectorAll(selector).forEach(container => {
@@ -502,10 +502,14 @@ const pages = {
   guides: ['Survival guides', 'Knowledge keeps us warm.', 'Practical starter checklists for the road ahead.'],
   calendar: ['Guild calendar', 'Better, when we’re together.', 'The guild schedule, with your next Airship departure in server and local time.'],
   playbooks: ['Guild playbooks', 'One guild. One direction.', 'Simple preparation for coordinated guild play.'],
-  'guild-duel': ['Guild Duel', 'Prepare today. Score together.', 'Six themed days, resource planning, personal rewards and Saturday Raid guidance.'],
+  'guild-duel': ['Guild Duel', 'PHNX, week after week.', 'A home for future Duel results and the archived matchup snapshot.'],
+  'guild-duel-players': ['Guild Duel · Players', 'Save for the right day.', 'Six themed days, resource planning, rewards and Raid safety.'],
+  'guild-duel-officers': ['Guild Duel · Officers & callers', 'Raid together. Defend together.', 'Officer raid coordination, defence coverage and weekly priorities.'],
   'ember-wars': ['Ember Wars', 'One guild. One fire.', 'A beginner’s guide to preparing, coordinating, and helping PHNX.'],
   'arctic-showdown': ['Arctic Showdown', 'Every attack is a team decision.', 'PHNX target guidance, a preparation checklist, and resources for Arctic Showdown.'],
-  'sandstorm-scuffle': ['Sandstorm Scuffle', 'Rise through the sandstorm.', 'Signup, structures, scoring, squad roles, healing, rewards and recorded PHNX results.'],
+  'sandstorm-scuffle': ['Sandstorm Scuffle', 'PHNX in the sandstorm.', 'Our latest recorded matches, scores and victories.'],
+  'sandstorm-players': ['Sandstorm · Players', 'Play your part. Hold your ground.', 'Your match checklist, signup, personal rewards and player guidance.'],
+  'sandstorm-officers': ['Sandstorm · Officers & callers', 'Call the play. Lead together.', 'Roster planning, structure priorities and scoring reference.'],
   community: ['Community guidelines', 'Respect. Show up. Rise together.', 'PHNX guild expectations, activity rules, accountability, and server #268 policy.'],
 };
 function navigate() {
@@ -515,6 +519,14 @@ function navigate() {
     if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
+  for (const [parent, submenu, children] of [
+    ['sandstorm-scuffle', 'sandstorm-submenu', ['sandstorm-players', 'sandstorm-officers']],
+    ['guild-duel', 'duel-submenu', ['guild-duel-players', 'guild-duel-officers']],
+  ]) {
+    const active = page === parent || children.includes(page);
+    $(`#${submenu}`).hidden = !active;
+    $(`nav a[data-page="${parent}"]`).setAttribute('aria-expanded', String(active));
+  }
   const [name, heading, subheading] = pages[page];
   $('#page-name').textContent = name; $('#heading').textContent = heading; $('#subheading').textContent = subheading;
   document.title = `${name} · Rising Phoenix · PHNX`;

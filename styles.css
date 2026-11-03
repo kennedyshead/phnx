@@ -96,10 +96,13 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 @media(max-width:760px){:root{--panel-padding:20px}.view[data-layout]>.ember-intro h2{font-size:23px}.guide-card .guide-art{right:20px}.guide-card>strong{font-size:19px}}
 .beginner-card[data-event]{background:var(--event-bg);border-color:var(--event-border);border-inline-start:4px solid var(--event-accent)}
 [data-beginner-event]{margin-bottom:20px}.ember-grid>[data-beginner-event]{margin-bottom:0}
-:is(#sandstorm-scuffle-view,#guild-duel-view) details>summary{cursor:pointer;font-size:15px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
-:is(#sandstorm-scuffle-view,#guild-duel-view) details>summary:focus-visible{outline:3px solid var(--event-accent);outline-offset:5px}
-:is(#sandstorm-scuffle-view,#guild-duel-view) details[open]>summary{margin-bottom:16px}
-:is(#sandstorm-scuffle-view,#guild-duel-view) .ember-grid{align-items:flex-start}
+:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details>summary{cursor:pointer;font-size:15px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details>summary:focus-visible{outline:3px solid var(--event-accent);outline-offset:5px}
+:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details[open]>summary{margin-bottom:16px}
+:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-players-view,#guild-duel-officers-view) .ember-grid{align-items:flex-start}
+.nav-submenu{display:grid;gap:5px;margin-left:24px;padding-left:10px;border-left:2px solid var(--event-border)}
+.nav-submenu a{font-size:11px;padding:10px}
+@media(max-width:760px){.nav-submenu{display:flex;flex-shrink:0;gap:4px;margin-left:0;padding-left:4px}.nav-submenu a{flex:none}}
 .beginner-card .eyebrow{color:var(--event-accent);font-size:10px;margin:0 0 12px}
 .beginner-card h4{font-size:14px;line-height:1.5;margin:20px 0 8px}
 .beginner-card .beginner-timing{font-size:12px;line-height:1.7;margin:0 0 16px;color:#52616b}

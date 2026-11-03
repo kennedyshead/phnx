@@ -115,13 +115,13 @@ export const eventBeginners = {
     caution: 'This is supplied PHNX guidance, not a universal event rule. No exact stage start times are confirmed on this site.',
   },
   'sandstorm-scuffle': {
-    name: 'Sandstorm Scuffle', href: '#sandstorm-scuffle', title: 'Your match checklist', tipsTitle: 'Before', rulesTitle: 'During',
+    name: 'Sandstorm Scuffle', href: '#sandstorm-players', title: 'Your match checklist', tipsTitle: 'Before', rulesTitle: 'During',
     tips: ['Vote in Events > Sandstorm Scuffle for every slot you can attend.', 'Confirm your team, time and caller; be online 5 minutes early. Report absences early.', 'Bring only PvP-ready squads. Low power? Ask for a garrison role.'],
     rules: ['Follow your caller. Stay garrisoned until a replacement is arranged.', 'Use Sandstorm-only healing speedups first.', 'Check your reward track: 15,000 personal points is the historical mark, not a guaranteed current target.'],
     caution: 'Armigos heal free on exit. Regular speedups used during the match are not refunded.',
   },
   'guild-duel': {
-    name: 'Guild Duel', href: '#guild-duel', title: 'Make each day count', tipsTitle: 'Prepare', rulesTitle: 'Each day',
+    name: 'Guild Duel', href: '#guild-duel-players', title: 'Make each day count', tipsTitle: 'Prepare', rulesTitle: 'Each day',
     tips: ['Stockpile on Sunday: AP, speedups, eggs, Palmon XP, tokens, Skillfruit and Magic Beans.', 'Save resources for a matching scoring day; keep them for next week if this week is not a good fit.'],
     rules: ['Open Guild > Guild Duel and check the active tasks before spending.', 'Aim for the green chest each day; save bigger pushes for a planned purple-chest day.', 'Stay with your guild through the Duel. Ask an R4 / R5 before changing guilds or joining a raid.'],
     caution: 'Saturday is raid day: arrange protection before going offline. Check shield rules and duration in-game; fighting can cost troops and resources.',
