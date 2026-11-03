@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=c77a10fe7acf0bb5259d';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=b1a79336c954985166d6';
 
 const $ = selector => document.querySelector(selector);
 let seasonKey = null;
@@ -432,10 +432,13 @@ function renderProgress(now = new Date()) {
   const failed = activePriorities.filter(item => checklistStatus(item, state.completed, now) === 'failed').length;
   $('#priority-count').textContent = `${count} / ${activePriorities.length}`;
   $('#progress-fill').style.width = `${count / activePriorities.length * 100}%`;
-  $('#progress-text').textContent = failed ? `${count} done · ${failed} failed · ${activePriorities.length - count - failed} remaining. See “Done and failed” below to review or correct an item.` : count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
+  $('#progress-text').textContent = failed ? `${count} done · ${failed} failed · ${activePriorities.length - count - failed} remaining. Expand “Done and failed” to review or correct an item.` : count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
 }
 function renderChecklist(now = new Date()) {
+  const previous = $('#checklist-finished');
+  const wasOpen = previous?.dataset.day === state.day && previous.open;
   const focusedValue = $('#priorities input:focus')?.value;
+  const summaryFocused = document.activeElement === $('#checklist-finished summary');
   const statuses = new Map(activePriorities.map(item => [item.id, checklistStatus(item, state.completed, now)]));
   checklistSignature = [...statuses.values()].join('|');
   const weekday = new Date(`${state.day}T12:00:00Z`).getUTCDay();
@@ -444,12 +447,13 @@ function renderChecklist(now = new Date()) {
   summary.id = 'priority-day';
   summary.className = 'small muted';
   const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long', timeZone: 'UTC' }).format(new Date(`${state.day}T12:00:00Z`));
-  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Unchecked timed items fail after their scheduled start; this is checklist status, not an in-game result. Done and failed items remain below for review. Resets at server midnight.`;
+  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Unchecked timed items fail after their scheduled start; this is checklist status, not an in-game result. Expand “Done and failed” to review or correct an item. Resets at server midnight.`;
   const nodes = [summary];
   const done = activePriorities.filter(item => statuses.get(item.id) === 'done');
   const failed = activePriorities.filter(item => statuses.get(item.id) === 'failed');
-  const finished = document.createElement('section'); finished.id = 'checklist-finished';
-  const finishedSummary = document.createElement('h3'); finishedSummary.id = 'checklist-finished-title';
+  const finished = document.createElement('details'); finished.id = 'checklist-finished';
+  finished.dataset.day = state.day; finished.open = Boolean(wasOpen);
+  const finishedSummary = document.createElement('summary'); finishedSummary.id = 'checklist-finished-title';
   finished.setAttribute('aria-labelledby', finishedSummary.id);
   finishedSummary.textContent = `Done and failed · ${done.length} done · ${failed.length} failed`;
   finished.append(finishedSummary);
@@ -502,8 +506,9 @@ function renderChecklist(now = new Date()) {
   $('#priorities').replaceChildren(...nodes);
   if (focusedValue) {
     const moved = [...$('#priorities').querySelectorAll('input')].find(input => input.value === focusedValue);
-    moved?.focus();
-  }
+    if (moved?.closest('#checklist-finished') && !finished.open) finishedSummary.focus();
+    else moved?.focus();
+  } else if (summaryFocused && finished.isConnected) finishedSummary.focus();
 }
 renderChecklist();
 $('#priorities').addEventListener('change', event => {
