@@ -10,6 +10,22 @@ export function serverClock(now = new Date()) {
 // Sunday through Saturday, in server time. Source: Dannie's 2026-11-02 bulletin.
 export const airshipHours = [19, 19, 7, 19, 7, 19, 7];
 
+// Date is a server calendar date, not a local date. Never use an undated time
+// as a confirmed event: local offsets can change with daylight saving.
+export function serverTimeOnDate(date, time) {
+  return new Date(`${date}T${time}:00-02:00`);
+}
+
+export function nextWeeklyServerTime(time, weekdays, now = new Date()) {
+  const today = serverClock(now).date;
+  for (let days = 0; days <= 7; days++) {
+    const date = new Date(`${today}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    const instant = serverTimeOnDate(date.toISOString().slice(0, 10), time);
+    if (weekdays.includes(date.getUTCDay()) && instant >= now) return instant;
+  }
+}
+
 // Opponent identity is taken from each complete PHNX row, not older OATH rows.
 export const sandstormOpponents = {
   '2026-10-30 18:00': { icon: 'freaks-united', name: '[Fu2] FreaksUnited' },

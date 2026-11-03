@@ -1,4 +1,4 @@
-import { priorities, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, sandstormOpponents } from './lib.js';
+import { priorities, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
 
 const $ = selector => document.querySelector(selector);
 // Decorative artwork: the adjacent headings already identify each event.
@@ -71,6 +71,21 @@ const localDateFormat = new Intl.DateTimeFormat(undefined, { year: 'numeric', mo
 $('#local-clock-zone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const departureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'short' });
 const serverDepartureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Etc/GMT+2' });
+function updateLocalTimes(now) {
+  document.querySelectorAll('[data-local-time]').forEach(node => {
+    node.textContent = ` · ${departureFormat.format(new Date(node.dataset.localTime))} local`;
+  });
+  document.querySelectorAll('[data-local-schedule]').forEach(node => {
+    const time = node.dataset.localSchedule;
+    if (node.dataset.weekdays) {
+      const next = nextWeeklyServerTime(time, node.dataset.weekdays.split(',').map(Number), now);
+      node.textContent = ` Next occurrence: ${departureFormat.format(next)} local.`;
+    } else {
+      const date = serverClock(now).date;
+      node.textContent = ` (${departureFormat.format(serverTimeOnDate(date, time))} local; conversion for server date ${date}, not a confirmed hunt)`;
+    }
+  });
+}
 let calendarDay = serverClock().date;
 let calendarYear = Number(calendarDay.slice(0, 4));
 let calendarMonth = Number(calendarDay.slice(5, 7)) - 1;
@@ -175,6 +190,7 @@ function updateClocks() {
   $('#local-clock-date').textContent = localDateFormat.format(now);
   $('#today').textContent = dateFormat.format(now);
   updateAirship(now);
+  updateLocalTimes(now);
   if (clock.date !== calendarDay) { calendarDay = clock.date; renderCalendar(); }
 }
 updateClocks();
