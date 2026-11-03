@@ -239,3 +239,8 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 :root .ember-callout>.button{margin-top:0}
 :root .guide-card .guide-bottom{margin-top:auto;padding-top:20px;border-top:0;align-items:center}
 :root .guide-card .guide-bottom>.card-action{font-size:14px;letter-spacing:0}
+.ember-grid > .sandstorm-buildings { flex-basis: 100%; }
+.sandstorm-building { display: flex; align-items: center; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.sandstorm-building img { width: clamp(80px, 18vw, 144px); height: auto; flex-shrink: 0; border-radius: 12px; }
+.sandstorm-building h4 { margin: 0 0 8px; font-size: 16px; }
+.sandstorm-building p { margin: 0; }

@@ -61,7 +61,8 @@ export const datedEvents = [
   ...[2, 9, 16, 23].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · King scheduling / side selection', time: null })),
   ...[3, 10, 17, 24].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · attackers declare war (00:00–24:00 server)', time: null })),
   { date: '2026-11-03', type: 'guild-hunt', title: 'Guild Hunt · Flapnir (Flappy)', time: '22:00' },
-  ...[5, 6, 7].map(day => ({ date: `2026-11-0${day}`, type: 'sandstorm-scuffle', title: 'Sandstorm Scuffle · event window', time: null })),
+  { date: '2026-11-05', type: 'sandstorm-scuffle', title: 'Sandstorm Scuffle · registration opens (1 day)', time: '00:00', phase: 'registration' },
+  ...[6, 7].map(day => ({ date: `2026-11-0${day}`, type: 'sandstorm-scuffle', title: 'Sandstorm Scuffle · event window', time: null })),
 ];
 
 export function calendarEvents(year, month) {
@@ -79,7 +80,8 @@ export function calendarEvents(year, month) {
 function scheduledTimedEvents(now) {
   const airship = nextAirship(now);
   const date = serverClock(airship).date;
-  const events = datedEvents.filter(event => event.time).map(event => ({ ...event, datetime: `${event.date}T${event.time}:00-02:00` }));
+  // Registration is timed on the calendar, but is not a battle/start for newcomer promotion.
+  const events = datedEvents.filter(event => event.time && event.phase !== 'registration').map(event => ({ ...event, datetime: `${event.date}T${event.time}:00-02:00` }));
   events.push({ date, type: 'airship', title: 'Guild Airship', time: serverClock(airship).time.slice(0, 5), datetime: airship.toISOString() });
   return events.filter(event => new Date(event.datetime) >= now).sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 }
@@ -100,6 +102,12 @@ export const eventPages = {
 
 export function eventLandingTimer(type, now = new Date()) {
   if (!Object.hasOwn(eventPages, type)) throw new RangeError('Unknown event');
+  if (type === 'sandstorm-scuffle') {
+    const opens = '2026-11-05T00:00:00-02:00';
+    const closes = '2026-11-06T00:00:00-02:00';
+    if (now < new Date(opens)) return { label: 'Registration opens', datetime: opens, note: 'Thursday 00:00:00 server time (UTC−2). Registration lasts 1 day; team battle bookings remain unconfirmed.' };
+    if (now < new Date(closes)) return { label: 'Registration closes', datetime: closes, note: 'Published registration window, not live signup status. Check votes, roster and chosen battle slot in-game.' };
+  }
   if (type === 'guild-duel') {
     // Owner-confirmed 00:00 server reset. Sunday is preparation, not scoring.
     const next = new Date(`${serverClock(now).date}T12:00:00Z`);
@@ -244,7 +252,7 @@ export function prioritiesForDate(now = new Date()) {
     'sandstorm-scuffle': ['Check Sandstorm Scuffle registration and assignments', 'This is a recorded event-window date, not a confirmed battle time. Check voting, registration and squad instructions in-game.'],
   };
   const events = calendarEvents(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1).filter(event => event.date === date).map(event => ({
-    id: `event-${event.type}-${date}`, eventType: event.type, title: eventTasks[event.type][0], detail: `${event.title}. ${eventTasks[event.type][1]}`, tag: 'GUILD EVENT', icon: '◈', group: 'today', time: event.time, datetime: event.datetime,
+    id: `event-${event.type}-${date}`, eventType: event.type, title: eventTasks[event.type][0], detail: `${event.title}. ${eventTasks[event.type][1]}`, tag: 'GUILD EVENT', icon: '◈', group: 'today', time: event.phase === 'registration' ? null : event.time, datetime: event.phase === 'registration' ? null : event.datetime,
   }));
   return [...daily.map(item => item.id.startsWith('duel-') ? { ...item, eventType: 'guild-duel' } : item), ...events, ...priorities.map(item => ({ ...item, group: 'everyday' }))];
 }
