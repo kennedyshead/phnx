@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=beeb7f6645e39268eb44';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=2f8938b11abff80a9403';
 
 const $ = selector => document.querySelector(selector);
 // CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
@@ -33,8 +33,7 @@ function applyTheme() {
   if (themePreference) document.documentElement.dataset.theme = themePreference;
   else delete document.documentElement.dataset.theme;
   const dark = themePreference ? themePreference === 'dark' : systemTheme.matches;
-  $('#theme-toggle').setAttribute('aria-pressed', String(dark));
-  $('#theme-toggle').replaceChildren(icon(dark ? 'moon' : 'sun'), 'Dark mode');
+  $('#theme-toggle').replaceChildren(icon(dark ? 'sun' : 'moon'), dark ? 'Light mode' : 'Dark mode');
   $('#theme-toggle').title = `Catppuccin ${dark ? 'Mocha' : 'Latte'} · ${themePreference ? 'manual choice' : 'following your OS'}`;
   $('#theme-system').setAttribute('aria-pressed', String(!themePreference));
   document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
