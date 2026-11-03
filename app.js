@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=5c6d63a8df8fdef7eb4e';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=8a17eb7f268579d59ac7';
 
 const $ = selector => document.querySelector(selector);
 // CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
@@ -33,9 +33,10 @@ function applyTheme() {
   if (themePreference) document.documentElement.dataset.theme = themePreference;
   else delete document.documentElement.dataset.theme;
   const dark = themePreference ? themePreference === 'dark' : systemTheme.matches;
-  $('#theme-toggle').replaceChildren(icon(dark ? 'sun' : 'moon'), dark ? 'Light mode' : 'Dark mode');
-  $('#theme-toggle').title = `Catppuccin ${dark ? 'Mocha' : 'Latte'} · ${themePreference ? 'manual choice' : 'following your OS'}`;
-  $('#theme-system').setAttribute('aria-pressed', String(!themePreference));
+  const label = dark ? 'Switch to light mode' : 'Switch to dark mode';
+  $('#theme-toggle').replaceChildren(icon(dark ? 'sun' : 'moon'));
+  $('#theme-toggle').setAttribute('aria-label', label);
+  $('#theme-toggle').title = label;
   document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
     meta.content = dark ? '#1e1e2e' : '#eff1f5';
   });
@@ -49,7 +50,6 @@ function chooseTheme(preference) {
   applyTheme();
 }
 $('#theme-toggle').addEventListener('click', () => chooseTheme((themePreference ? themePreference === 'dark' : systemTheme.matches) ? 'light' : 'dark'));
-$('#theme-system').addEventListener('click', () => chooseTheme(null));
 systemTheme.addEventListener('change', applyTheme);
 window.addEventListener('storage', event => {
   if (event.key !== 'phnx-theme' && event.key !== null) return;
