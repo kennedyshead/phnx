@@ -76,12 +76,67 @@ export function calendarEvents(year, month) {
   return events.map(event => ({ ...event, datetime: event.time ? `${event.date}T${event.time}:00-02:00` : null })).sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || '') || a.title.localeCompare(b.title));
 }
 
-export function upcomingTimedEvents(now = new Date()) {
+function scheduledTimedEvents(now) {
   const airship = nextAirship(now);
   const date = serverClock(airship).date;
   const events = datedEvents.filter(event => event.time).map(event => ({ ...event, datetime: `${event.date}T${event.time}:00-02:00` }));
   events.push({ date, type: 'airship', title: 'Guild Airship', time: serverClock(airship).time.slice(0, 5), datetime: airship.toISOString() });
-  return events.filter(event => new Date(event.datetime) >= now).sort((a, b) => new Date(a.datetime) - new Date(b.datetime)).slice(0, 3);
+  return events.filter(event => new Date(event.datetime) >= now).sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+}
+
+export function upcomingTimedEvents(now = new Date()) {
+  return scheduledTimedEvents(now).slice(0, 3);
+}
+
+// Beginner copy is owned here, never separately transcribed into either page.
+// Practical suggestions and supplied guild guidance, not newly verified mechanics.
+export const eventBeginners = {
+  airship: {
+    name: 'Guild Airship', href: '#calendar', title: 'Check the departure before making plans',
+    tips: ['Confirm the guild Airship departure in-game and check the server and local times on the calendar.', 'Ask Leadership what you should prepare and let the organizer know if your availability changes.', 'The Guild Duel task to dispatch a UR Airship is not the guild Airship departure.'],
+    rules: [], caution: 'Published departure times are a schedule, not live departure status. Check in-game for delays or changes.',
+  },
+  'guild-hunt': {
+    name: 'Guild Hunt (Flappy)', href: '#calendar', title: 'Get ready for the rally',
+    tips: ['Confirm the hunt time and organizer in the latest guild bulletin.', 'Read the assigned objective and role, and check your available team and resources in-game.', 'New to rallies? Ask Leadership for a suitable role before joining.'],
+    rules: ['Follow Leadership’s rally instructions and let the organizer know if your availability changes.'],
+    caution: 'A three-day rotation is reported, but no rotation anchor is known. Only explicitly confirmed hunt starts can trigger this guidance.',
+  },
+  'ember-wars': {
+    name: 'Ember Wars', href: '#ember-wars', title: 'New or lower-power player?',
+    tips: ['Ask for a suitable support assignment. Staying with the group, watching approaches, and reporting enemy movement are useful contributions.', 'Not sure what to do? Ask: “I am new to Ember Wars. Where should I go, and what should I focus on?”', 'Check the current shield rules in-game before acting; ask how to help defend the generator while keeping your camp shielded.'],
+    rules: ['Confirm your side and attacking or defending role with Leadership; Monday side selection can change the posted assignments.', 'Stay with your assigned group and follow the designated caller rather than choosing solo targets.'],
+    caution: 'Use the in-game vote to signal likely participation, not a firm commitment. Current in-game rules and Leadership’s calls take priority.',
+  },
+  'arctic-showdown': {
+    name: 'Arctic Showdown', href: '#arctic-showdown', title: 'Know your number before attacking',
+    tips: ['Check the active stage, qualification, available attacks and deadline in-game.', 'Confirm your position number and assigned target with Leadership before using an attack.'],
+    rules: ['PHNX first-attack guidance: match your position number; position #1 attacks #1.', 'Leave weaker side targets for their intended players. If a target is occupied or you need a follow-up assignment, ask Leadership; do not automatically move to the next number.'],
+    caution: 'This is supplied PHNX guidance, not a universal event rule. No exact stage start times are confirmed on this site.',
+  },
+  'sandstorm-scuffle': {
+    name: 'Sandstorm Scuffle', href: '#sandstorm-scuffle', title: 'Confirm your squad and battle time',
+    tips: ['Check in-game registration and voting; the supplied event notice says signup unlocks when votes reach 10.', 'Ask which Skirmish Squad, A or B, you should join and confirm that you can attend its assigned time.', 'Review the current objectives and participation requirements before preparing your team.'],
+    rules: ['Choose your squad in coordination with Leadership and follow its current calls. Voting and signup happen in-game, not on this website.'],
+    caution: 'The recorded event window is not a confirmed battle start. Historical results do not establish upcoming battle times.',
+  },
+  'guild-duel': {
+    name: 'Guild Duel', href: '#guild-duel', title: 'Check the active tasks before spending',
+    tips: ['Open the current Duel task list and plan around its active theme, scoring and your available resources.', 'Check costs, reset availability and refund behavior in-game before trying the reported mount-feed technique.', 'Use the detailed guide for the supplied Day 1 missions and mount-feed steps; do not assume a free reset cooldown.'],
+    rules: ['The supplied guild reminders ask members to vote in-game for their preferred Sandstorm time and donate to guild tech.'],
+    caution: 'The weekday checklist is a preparation plan, not live Duel status. No exact Duel start or reset time is configured.',
+  },
+};
+
+export function upcomingBeginnerEvents(now = new Date()) {
+  const seen = new Set();
+  // Advance past an exact departure so Airship can select its following slot too.
+  return scheduledTimedEvents(new Date(now.getTime() + 1)).filter(event => {
+    const until = new Date(event.datetime).getTime() - now.getTime();
+    if (!eventBeginners[event.type] || seen.has(event.type) || until <= 0 || until >= 48 * 3_600_000) return false;
+    seen.add(event.type);
+    return true;
+  });
 }
 
 export const emberWars = {
@@ -91,7 +146,6 @@ export const emberWars = {
     { title: 'During the event', steps: ['Follow the designated caller and stay with your assigned group.', 'Focus the called objective instead of chasing individual enemies.', 'Watch guild chat for changes. Report location, what is happening, and what help is needed.', 'If you keep losing fights, stop and ask for another assignment rather than repeatedly taking losses.'] },
     { title: 'If we are attacking', steps: ['Wait for the coordinated push.', 'Move toward the target leadership identifies.', 'Do not split off for solo fights or assume the nearest enemy is the priority.'] },
     { title: 'If we are defending', steps: ['Be in position before fighting begins.', 'Protect the assigned objective and respond to calls for help.', 'Do not chase enemies away from the area you are meant to defend.'] },
-    { title: 'New or lower-power player?', steps: ['Ask for a suitable support assignment. Staying with the group, watching approaches, and reporting enemy movement are useful contributions.', 'Not sure what to do? Ask: “I am new to Ember Wars. Where should I go, and what should I focus on?”'] },
   ],
   resources: [
     { title: 'Ember Wars beginner guide', source: 'Ploto Palmon · YouTube', url: 'https://www.youtube.com/watch?v=ibQBx_N3aUg' },

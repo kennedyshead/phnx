@@ -94,3 +94,9 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 .view[data-layout] .text-link{font-size:13px;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
 #new-to-game-view .priorities-panel{max-width:none}
 @media(max-width:760px){:root{--panel-padding:20px}.view[data-layout]>.ember-intro h2{font-size:23px}.guide-card .guide-art{right:20px}.guide-card>strong{font-size:19px}}
+.beginner-card[data-event]{background:var(--event-bg);border-color:var(--event-border);border-inline-start:4px solid var(--event-accent)}
+[data-beginner-event]{margin-bottom:20px}.ember-grid>[data-beginner-event]{margin-bottom:0}
+.beginner-card .eyebrow{color:var(--event-accent);font-size:10px;margin:0 0 12px}
+.beginner-card h4{font-size:14px;line-height:1.5;margin:20px 0 8px}
+.beginner-card .beginner-timing{font-size:12px;line-height:1.7;margin:0 0 16px;color:#52616b}
+.beginner-card .text-link{display:inline-block;margin-top:12px}

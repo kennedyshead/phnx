@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
 
 const $ = selector => document.querySelector(selector);
 // One event identity follows its navigation, static panels and dynamic entries.
@@ -139,6 +139,49 @@ function renderUpcomingEvents(now) {
   const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Based on supplied schedules, not a live game feed. Check the latest in-game bulletin for changes. Events without a start time remain in the calendar.';
   upcomingSection.replaceChildren(heading, cards, note);
 }
+// Both destinations use this exact renderer and the same eventBeginners record.
+function beginnerCard(type) {
+  const guide = eventBeginners[type];
+  const card = document.createElement('article');
+  card.className = 'ember-panel beginner-card'; card.dataset.event = type;
+  const content = document.createElement('div'); content.className = 'beginner-content';
+  const tag = document.createElement('p'); tag.className = 'eyebrow'; tag.textContent = `${guide.name} · NEW PLAYERS`;
+  const heading = document.createElement('h3'); heading.textContent = guide.title;
+  content.append(tag, heading);
+  for (const [title, items] of [['Starter tips', guide.tips], ['Guild guidance', guide.rules]]) {
+    if (!items.length) continue;
+    const label = document.createElement('h4'); label.textContent = title;
+    const list = document.createElement('ul');
+    for (const text of items) { const item = document.createElement('li'); item.textContent = text; list.append(item); }
+    content.append(label, list);
+  }
+  const caution = document.createElement('p'); caution.className = 'small muted'; caution.textContent = guide.caution;
+  content.append(caution); card.append(content);
+  return card;
+}
+document.querySelectorAll('[data-beginner-event]').forEach(node => {
+  node.replaceChildren(beginnerCard(node.dataset.beginnerEvent));
+});
+let beginnerKey = null;
+function renderBeginnerEvents(now) {
+  const events = upcomingBeginnerEvents(now);
+  const key = events.map(event => `${event.type}:${event.datetime}`).join('|');
+  if (key === beginnerKey) return;
+  beginnerKey = key;
+  const cards = events.map(event => {
+    const card = beginnerCard(event.type);
+    const timing = document.createElement('p'); timing.className = 'beginner-timing';
+    const time = document.createElement('time'); time.dateTime = event.datetime;
+    time.textContent = `${serverDepartureFormat.format(new Date(event.datetime))} server · ${departureFormat.format(new Date(event.datetime))} local`;
+    timing.append('Next confirmed start: ', time);
+    if (event.type === 'ember-wars') timing.append(' · Server timezone assumed (UTC−2); confirm in-game.');
+    const link = document.createElement('a'); link.className = 'text-link'; link.href = eventBeginners[event.type].href; link.textContent = `Full ${eventBeginners[event.type].name} guide ↗`;
+    card.prepend(timing); card.append(link);
+    return card;
+  });
+  $('#beginner-events').replaceChildren(...cards);
+  $('#upcoming-beginners').hidden = cards.length === 0;
+}
 function updateLocalTimes(now) {
   document.querySelectorAll('[data-local-time]').forEach(node => {
     node.textContent = ` · ${departureFormat.format(new Date(node.dataset.localTime))} local`;
@@ -266,6 +309,7 @@ function updateClocks() {
   updateAirship(now);
   updateLocalTimes(now);
   renderUpcomingEvents(now);
+  renderBeginnerEvents(now);
   if (state.day !== clock.date) {
     state.day = clock.date;
     state.completed = [];
