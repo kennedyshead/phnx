@@ -36,12 +36,12 @@ export function countdownUntil(departure, now = new Date()) {
   return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map(value => String(value).padStart(2, '0')).join(':');
 }
 
-// Dated screenshot schedule, November 2026 context. No recurrence inferred.
+// Dated screenshot schedule, November 2026 context, plus owner-supplied 7 November time. No recurrence inferred.
 export const datedEvents = [
   { date: '2026-10-31', type: 'arctic-showdown', title: 'Arctic Showdown · registration', time: null },
   ...Array.from({ length: 7 }, (_, index) => ({ date: `2026-11-${String(index + 2).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · Round ${index + 1}`, time: null })),
   ...['Round of 16', 'Quarter-finals', 'Semi-finals', 'Finals'].map((stage, index) => ({ date: `2026-11-${String(index + 9).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · ${stage}`, time: null })),
-  ...[4, 7, 11, 14, 18, 21, 25].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · battle day', time: null })),
+  ...[4, 7, 11, 14, 18, 21, 25].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · battle day', time: day === 7 ? '13:30' : null })),
   { date: '2026-11-03', type: 'guild-hunt', title: 'Guild Hunt · Flapnir (Flappy)', time: '22:00' },
   ...[5, 6, 7].map(day => ({ date: `2026-11-0${day}`, type: 'sandstorm-scuffle', title: 'Sandstorm Scuffle · event window', time: null })),
 ];
