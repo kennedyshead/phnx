@@ -148,7 +148,7 @@ function beginnerCard(type) {
   const tag = document.createElement('p'); tag.className = 'eyebrow'; tag.textContent = `${guide.name} · NEW PLAYERS`;
   const heading = document.createElement('h3'); heading.textContent = guide.title;
   content.append(tag, heading);
-  for (const [title, items] of [['Starter tips', guide.tips], ['Guild guidance', guide.rules]]) {
+  for (const [title, items] of [[guide.tipsTitle || 'Starter tips', guide.tips], [guide.rulesTitle || 'Guild guidance', guide.rules]]) {
     if (!items.length) continue;
     const label = document.createElement('h4'); label.textContent = title;
     const list = document.createElement('ul');

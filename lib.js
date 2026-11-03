@@ -115,10 +115,10 @@ export const eventBeginners = {
     caution: 'This is supplied PHNX guidance, not a universal event rule. No exact stage start times are confirmed on this site.',
   },
   'sandstorm-scuffle': {
-    name: 'Sandstorm Scuffle', href: '#sandstorm-scuffle', title: 'Confirm your squad and battle time',
-    tips: ['Open Events > Sandstorm Scuffle and vote for every slot you can attend; signup unlocks when votes reach 10.', 'Confirm your one team (Skirmish Squad A or B), assigned time and caller with Leadership; be online 5 minutes early and report absences early.', 'Send only PvP-ready squads. A quiet garrison is doing its job: holding structures scores team and occupation points.', 'Use Sandstorm-only healing speedups first. Armigos heal free on exit, but regular speedups spent during the match are not refunded.'],
-    rules: ['Follow your caller, keep structures garrisoned and arrange backfill before moving. Low-power players are welcome in garrison roles.', 'Check the current personal reward track; 15,000 points is the reported historical target. Voting and signup happen in-game, not on this website.'],
-    caution: 'Friday slots (09:00, 18:00, 23:00 server) are available options, not confirmed PHNX bookings. Older 60-minute unlock times may differ in the 40-minute match; check in-game rules.',
+    name: 'Sandstorm Scuffle', href: '#sandstorm-scuffle', title: 'Your match checklist', tipsTitle: 'Before', rulesTitle: 'During',
+    tips: ['Vote in Events > Sandstorm Scuffle for every slot you can attend.', 'Confirm your team, time and caller; be online 5 minutes early. Report absences early.', 'Bring only PvP-ready squads. Low power? Ask for a garrison role.'],
+    rules: ['Follow your caller. Stay garrisoned until a replacement is arranged.', 'Use Sandstorm-only healing speedups first.', 'Check your reward track: 15,000 personal points is the historical mark, not a guaranteed current target.'],
+    caution: 'Armigos heal free on exit. Regular speedups used during the match are not refunded.',
   },
   'guild-duel': {
     name: 'Guild Duel', href: '#guild-duel', title: 'Check the active tasks before spending',
