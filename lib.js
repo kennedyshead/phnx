@@ -121,10 +121,10 @@ export const eventBeginners = {
     caution: 'Armigos heal free on exit. Regular speedups used during the match are not refunded.',
   },
   'guild-duel': {
-    name: 'Guild Duel', href: '#guild-duel', title: 'Check the active tasks before spending',
-    tips: ['Open the current Duel task list and plan around its active theme, scoring and your available resources.', 'Check costs, reset availability and refund behavior in-game before trying the reported mount-feed technique.', 'Use the detailed guide for the supplied Day 1 missions and mount-feed steps; do not assume a free reset cooldown.'],
-    rules: ['The supplied guild reminders ask members to vote in-game for their preferred Sandstorm time and donate to guild tech.'],
-    caution: 'The weekday checklist is a preparation plan, not live Duel status. No exact Duel start or reset time is configured.',
+    name: 'Guild Duel', href: '#guild-duel', title: 'Make each day count', tipsTitle: 'Prepare', rulesTitle: 'Each day',
+    tips: ['Stockpile on Sunday: AP, speedups, eggs, Palmon XP, tokens, Skillfruit and Magic Beans.', 'Save resources for a matching scoring day; keep them for next week if this week is not a good fit.'],
+    rules: ['Open Guild > Guild Duel and check the active tasks before spending.', 'Aim for the green chest each day; save bigger pushes for a planned purple-chest day.', 'Stay with your guild through the Duel. Ask an R4 / R5 before changing guilds or joining a raid.'],
+    caution: 'Saturday is raid day: arrange protection before going offline. Check shield rules and duration in-game; fighting can cost troops and resources.',
   },
 };
 
@@ -162,32 +162,46 @@ export const priorities = [
 ];
 
 // Monday Day 1 follows the 2 November bulletin; Tuesday Day 2 is shown in
-// IMG_0366/0367. This is a weekday preparation plan, not live Duel status.
+// IMG_0366/0367 plus the supplied weekly guide. Preparation plan, not live Duel status.
 export const duelWeekdayPlan = {
   1: { day: 1, theme: 'Complete Intel Quests', tasks: [
-    ['intel', 'Complete Intel Quests', 'Follow the active Intel task list and check your Duel Points.'],
+    ['intel', 'Complete Intel Quests', 'Spend saved AP on the active Intel quests.'],
     ['ap', 'Review your Day 1 AP and gathering tasks', 'The guild bulletin also calls for spending AP and harvesting World Map resources. Check targets in-game.'],
     ['mount', 'Review the Day 1 mount-feed plan', 'Check the Guild Duel guide and current costs before using mount feed, shoes or resets.'],
-  ] },
+    ['xp', 'Use Palmon XP', 'XP also scores Thursday; choose the day that fits your reward plan.'],
+    ['bean', 'Acquire Magic Beans', 'Check today’s acquisition task; no purchase requirement is implied.'],
+  ], advice: 'Use saved AP and harvest resources. Before trying the mount-reset technique, check costs and scoring. The earlier bulletin also calls for mount feed and mount shoes.', source: 'Day 1 bulletin by [PHNX] Dexter07 · 2 November 2026, 03:55; expanded by the supplied weekly guide.' },
   2: { day: 2, theme: 'Build Up Your Camp', tasks: [
     ['speedups', 'Use Building Speedups', 'Shown task: use 1 minute of Building Speedups for 108 Duel Points. Check the live task list and your resource plan before spending.'],
     ['power', 'Increase Building Power', 'Shown task: increase Building Power by 1 point for 9 Duel Points. Plan upgrades within your available resources.'],
     ['ur-airship', 'Dispatch a UR Airship', 'Shown task: dispatch 1 UR Airship for 185,000 Duel Points. Check availability and requirements in-game; this is not the guild Airship departure.'],
     ['treasure', 'Complete a Legendary Treasure Hunt Quest', 'Shown task: complete 1 Legendary Treasure Hunt Quest for 138,750 Duel Points. Check the active task requirements.'],
     ['bean', 'Acquire Magic Beans', 'Shown task: acquire 1 Magic Bean for 555 Duel Points. No purchase or spending requirement is implied.'],
-  ] },
+  ], advice: 'Have upgrades running in advance, then use building speedups on the scoring day. Check completion timing so an upgrade does not finish before it can score.' },
   3: { day: 3, theme: 'Research Techs', tasks: [
-    ['research', 'Plan your Research Techs tasks', 'Open today’s Duel task list and plan research around its requirements. Check scoring and costs before using saved resources.'],
-  ] },
+    ['research', 'Use Research Speedups and complete research', 'Have research running, then use saved research speedups on its scoring day.'],
+    ['intel', 'Complete Intel Quests', 'Use available quests to supplement research points.'],
+    ['badges', 'Spend Guild Badges on Advanced Tech', 'Save this upgrade for today; verify requirements and costs first.'],
+    ['bean', 'Acquire Magic Beans', 'Check today’s acquisition task; no purchase requirement is implied.'],
+  ], advice: 'Plan research completion for today and spend Guild Badges on Advanced Tech, rather than using them early.' },
   4: { day: 4, theme: 'Upgrade Palmon', tasks: [
-    ['palmon', 'Plan your Upgrade Palmon tasks', 'Check today’s Duel requirements before upgrading Palmon or spending saved materials.'],
-  ] },
+    ['palmon', 'Hatch eggs and upgrade Palmon', 'Use saved eggs, Palmon XP, Palmon Tokens and Skillfruit after checking the active scoring tasks.'],
+    ['bean', 'Acquire Magic Beans', 'Check today’s acquisition task; no purchase requirement is implied.'],
+  ], advice: 'A saved Palmon stockpile can make this a good purple-chest push day. Spend according to your plan, not simply to empty every item stack.' },
   5: { day: 5, theme: 'Prepare for Battle', tasks: [
-    ['battle', 'Check Prepare for Battle tasks', 'Follow the active Duel task list and Leadership’s preparation instructions. Specific scoring tasks have not been supplied.'],
-  ] },
+    ['battle', 'Complete Intel Quests and prepare for battle', 'Check today’s task list and coordinate your preparation with Leadership.'],
+    ['building', 'Use Building Speedups and increase Building Power', 'Use the resources reserved for today’s building tasks.'],
+    ['research', 'Use Research Speedups', 'Spend saved research speedups only while the matching task is active.'],
+    ['training', 'Use Training Speedups and train Armigo', 'Check training costs and the scoring requirements before committing.'],
+    ['bean', 'Acquire Magic Beans', 'Check today’s acquisition task; no purchase requirement is implied.'],
+  ], advice: 'The mixed preparation day: use the intel, building, research and training resources you reserved for it.' },
   6: { day: 6, theme: 'Defeat Enemies', tasks: [
-    ['enemies', 'Check Defeat Enemies objectives', 'The Day 6 theme is visible in the supplied schedule, but its task details are not. Check the active tasks and Leadership’s instructions before fighting.'],
-  ] },
+    ['enemies', 'Fight in the Guild Raid', 'Coordinate with officers and attack together; do not travel solo.'],
+    ['ur-airship', 'Dispatch a UR Airship', 'Check the active task; this is not the guild Airship departure.'],
+    ['treasure', 'Complete a Legendary Treasure Hunt Quest', 'Check availability and current requirements.'],
+    ['speedups', 'Use speedups of any kind', 'Use suitable leftovers or keep them for next week; spending is not mandatory.'],
+    ['bean', 'Acquire Magic Beans', 'Check today’s acquisition task; no purchase requirement is implied.'],
+  ], advice: 'The supplied weekly guide assigns combat scoring to Saturday. Check the active Raid tab for the actual battle window and targets.' },
 };
 
 export function prioritiesForDate(now = new Date()) {
@@ -195,7 +209,7 @@ export function prioritiesForDate(now = new Date()) {
   const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
   const plan = duelWeekdayPlan[weekday];
   const daily = plan ? plan.tasks.map(([id, title, detail]) => ({ id: `duel-${plan.day}-${id}`, title, detail, tag: `DUEL · DAY ${plan.day}`, icon: '⚑', group: 'today' })) : [
-    { id: 'duel-check', title: 'Check today’s Guild Duel tasks', detail: 'Sunday’s theme is not confirmed here. Check the active theme and Leadership’s instructions in-game.', tag: 'GUILD DUEL', icon: '⚑', group: 'today' },
+    { id: 'duel-check', title: 'Stockpile for the next Guild Duel', detail: 'Sunday preparation: save AP, speedups, eggs, Palmon XP, tokens, Skillfruit and Magic Beans. Check the next Duel in-game.', tag: 'GUILD DUEL', icon: '⚑', group: 'today' },
   ];
   if (weekday === 5) daily.push({ id: 'friday-shield', title: 'End the day by shielding', detail: 'Saturday is reset day. Check your shield duration and the reset time in-game so you stay covered; no reset hour is configured here.', tag: 'FRIDAY · SHIELD', icon: '⬡', group: 'today' });
   const eventTasks = {

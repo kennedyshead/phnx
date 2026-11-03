@@ -162,6 +162,26 @@ function beginnerCard(type) {
 document.querySelectorAll('[data-beginner-event]').forEach(node => {
   node.replaceChildren(beginnerCard(node.dataset.beginnerEvent));
 });
+// One task catalog drives both the weekday checklist and the detailed Duel guide.
+for (const [weekday, plan] of Object.entries(duelWeekdayPlan)) {
+  const card = document.createElement('details'); card.className = 'ember-panel';
+  card.dataset.duelDay = plan.day;
+  const summary = document.createElement('summary');
+  summary.textContent = `${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][weekday]} · ${plan.theme}`;
+  const list = document.createElement('ul');
+  for (const [, title, detail] of plan.tasks) {
+    const item = document.createElement('li');
+    const label = document.createElement('strong'); label.textContent = title;
+    item.append(label, ` — ${detail}`); list.append(item);
+  }
+  const advice = document.createElement('p'); advice.textContent = plan.advice;
+  card.append(summary, list, advice);
+  if (plan.source) {
+    const source = document.createElement('p'); source.className = 'small muted'; source.textContent = plan.source;
+    card.append(source);
+  }
+  $('#duel-days').append(card);
+}
 let beginnerKey = null;
 function renderBeginnerEvents(now) {
   const events = upcomingBeginnerEvents(now);
@@ -482,7 +502,7 @@ const pages = {
   guides: ['Survival guides', 'Knowledge keeps us warm.', 'Practical starter checklists for the road ahead.'],
   calendar: ['Guild calendar', 'Better, when we’re together.', 'The guild schedule, with your next Airship departure in server and local time.'],
   playbooks: ['Guild playbooks', 'One guild. One direction.', 'Simple preparation for coordinated guild play.'],
-  'guild-duel': ['Guild Duel', 'Prepare today. Score together.', 'PHNX Day 1 missions, guild reminders, and the reported mount-feed technique.'],
+  'guild-duel': ['Guild Duel', 'Prepare today. Score together.', 'Six themed days, resource planning, personal rewards and Saturday Raid guidance.'],
   'ember-wars': ['Ember Wars', 'One guild. One fire.', 'A beginner’s guide to preparing, coordinating, and helping PHNX.'],
   'arctic-showdown': ['Arctic Showdown', 'Every attack is a team decision.', 'PHNX target guidance, a preparation checklist, and resources for Arctic Showdown.'],
   'sandstorm-scuffle': ['Sandstorm Scuffle', 'Rise through the sandstorm.', 'Signup, structures, scoring, squad roles, healing, rewards and recorded PHNX results.'],
