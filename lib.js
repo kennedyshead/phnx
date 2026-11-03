@@ -55,8 +55,8 @@ export function countdownUntil(departure, now = new Date()) {
 // Finite November 2026 bulletin/calendar snapshot; do not project future assignments.
 export const datedEvents = [
   { date: '2026-10-31', type: 'arctic-showdown', title: 'Arctic Showdown · registration', time: null },
-  ...Array.from({ length: 7 }, (_, index) => ({ date: `2026-11-${String(index + 2).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · Round ${index + 1}`, time: null })),
-  ...['Round of 16', 'Quarter-finals', 'Semi-finals', 'Finals'].map((stage, index) => ({ date: `2026-11-${String(index + 9).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · ${stage}`, time: null })),
+  ...Array.from({ length: 7 }, (_, index) => ({ date: `2026-11-${String(index + 2).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · Round ${index + 1}`, time: '10:00' })),
+  ...['Round of 16', 'Quarter-finals', 'Semi-finals', 'Finals'].map((stage, index) => ({ date: `2026-11-${String(index + 9).padStart(2, '0')}`, type: 'arctic-showdown', title: `Arctic Showdown · ${stage}`, time: '10:00' })),
   ...[4, 7, 11, 14, 18, 21, 25, 28].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: `Ember Wars · ${[4, 11, 18, 25].includes(day) ? 'Frost attacks / Ember defends' : 'Ember attacks / Frost defends'} · confirm roles`, time: '13:30' })),
   ...[2, 9, 16, 23].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · King scheduling / side selection', time: null })),
   ...[3, 10, 17, 24].map(day => ({ date: `2026-11-${String(day).padStart(2, '0')}`, type: 'ember-wars', title: 'Ember Wars · attackers declare war (00:00–24:00 server)', time: null })),
@@ -108,8 +108,8 @@ export function eventLandingTimer(type, now = new Date()) {
     return { label: `Next chapter · ${duelWeekdayPlan[weekday]?.theme || 'Sunday stockpile'}`, datetime: serverTimeOnDate(next.toISOString().slice(0, 10), '00:00').toISOString(), note: 'Daily reset: 00:00 server time. Sunday is preparation, not a seventh scoring day.' };
   }
   const next = scheduledTimedEvents(new Date(now.getTime() + 1)).find(event => event.type === type);
-  if (next) return { label: type === 'airship' ? 'Next departure' : 'Next confirmed start', datetime: next.datetime, note: 'Published schedule, not live game status. Check the current guild bulletin.' };
-  return { label: type === 'sandstorm-scuffle' ? 'Team battle time awaiting confirmation' : 'Next start awaiting confirmation', datetime: null, note: type === 'sandstorm-scuffle' ? 'Available Friday slots are not confirmed team bookings.' : type === 'arctic-showdown' ? 'Recorded stages have dates only; no start hour is supplied.' : 'No future timed start is recorded. A rotation without an anchor is not a confirmed date.' };
+  if (next) return { label: type === 'airship' ? 'Next departure' : type === 'arctic-showdown' ? `Next battle window · ${next.title.split(' · ')[1]}` : 'Next confirmed start', datetime: next.datetime, note: type === 'arctic-showdown' ? 'Practice schedule: battle 10:00–23:00 server time (UTC−2). Later rounds depend on qualification; this is not live match status.' : 'Published schedule, not live game status. Check the current guild bulletin.' };
+  return { label: type === 'sandstorm-scuffle' ? 'Team battle time awaiting confirmation' : 'Next start awaiting confirmation', datetime: null, note: type === 'sandstorm-scuffle' ? 'Available Friday slots are not confirmed team bookings.' : type === 'arctic-showdown' ? 'No future battle window is recorded beyond the finite November 2026 practice schedule.' : 'No future timed start is recorded. A rotation without an anchor is not a confirmed date.' };
 }
 
 // Beginner copy is owned here, never separately transcribed into either page.
@@ -134,9 +134,9 @@ export const eventBeginners = {
   },
   'arctic-showdown': {
     name: 'Arctic Showdown', href: '#arctic-showdown-players', title: 'Know your number before attacking',
-    tips: ['Check the active stage, qualification, available attacks and deadline in-game.', 'Confirm your position number and assigned target with Leadership before using an attack.'],
+    tips: ['Prepare your attack and defence lineups during 01:00–10:00 server time (UTC−2); battle runs 10:00–23:00.', 'You have 2 attacks daily, or 3 at VIP 14+. Confirm your position number and assigned target with Leadership before using an attack.'],
     rules: ['PHNX first-attack guidance: match your position number; position #1 attacks #1.', 'Leave weaker side targets for their intended players. If a target is occupied or you need a follow-up assignment, ask Leadership; do not automatically move to the next number.'],
-    caution: 'This is supplied PHNX guidance, not a universal event rule. No exact stage start times are confirmed on this site.',
+    caution: 'Numbered targets are PHNX guidance, not a universal game rule. Leaving the guild disqualifies you from remaining matches, even if you rejoin. Check the active stage and qualification in-game.',
   },
   'sandstorm-scuffle': {
     name: 'Sandstorm Scuffle', href: '#sandstorm-players', title: 'Your match checklist', tipsTitle: 'Before', rulesTitle: 'During',

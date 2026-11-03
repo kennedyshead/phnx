@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=8a17eb7f268579d59ac7';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=77877883489ce84854b5';
 
 const $ = selector => document.querySelector(selector);
 // CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
@@ -242,7 +242,7 @@ function renderUpcomingEvents(now) {
       description.append(time); group.append(term, description); times.append(group);
     }
     const source = document.createElement('p'); source.className = 'timing-source';
-    source.textContent = event.type === 'ember-wars' ? '13:30 announced · server time (UTC−2).' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
+    source.textContent = event.type === 'ember-wars' ? '13:30 announced · server time (UTC−2).' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : event.type === 'arctic-showdown' ? 'In-game practice schedule · battle 10:00–23:00 server time (UTC−2). Later rounds depend on qualification.' : 'Dannie’s 2 November guild bulletin.';
     card.append(title, countdown, times, source); cards.append(card);
   }
   const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Based on supplied schedules, not a live game feed. Check the latest in-game bulletin for changes. Events without a start time remain in the calendar.';
