@@ -96,10 +96,13 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 @media(max-width:760px){:root{--panel-padding:20px}.view[data-layout]>.ember-intro h2{font-size:23px}.guide-card .guide-art{right:20px}.guide-card>strong{font-size:19px}}
 .beginner-card[data-event]{background:var(--event-bg);border-color:var(--event-border);border-inline-start:4px solid var(--event-accent)}
 [data-beginner-event]{margin-bottom:20px}.ember-grid>[data-beginner-event]{margin-bottom:0}
-:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details>summary{cursor:pointer;font-size:15px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
-:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details>summary:focus-visible{outline:3px solid var(--event-accent);outline-offset:5px}
-:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-view,#guild-duel-players-view,#guild-duel-officers-view) details[open]>summary{margin-bottom:16px}
-:is(#sandstorm-players-view,#sandstorm-officers-view,#guild-duel-players-view,#guild-duel-officers-view) .ember-grid{align-items:flex-start}
+.view[data-event] details>summary{cursor:pointer;font-size:15px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+.view[data-event] details>summary:focus-visible{outline:3px solid var(--event-accent);outline-offset:5px}
+.view[data-event] details[open]>summary{margin-bottom:16px}
+.view[data-event] .ember-grid{align-items:flex-start}
+.event-landing-timer{margin:20px 0;padding:18px 20px;border:1px solid var(--event-border);border-left:4px solid var(--event-accent);border-radius:12px;background:var(--event-bg)}
+.event-landing-timer .eyebrow{color:var(--event-accent);margin:0 0 10px}
+.event-landing-timer p:last-child{margin-bottom:0}.landing-countdown-value{display:block;font-size:clamp(22px,4vw,34px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .nav-submenu{display:grid;gap:5px;margin-left:24px;padding-left:10px;border-left:2px solid var(--event-border)}
 .nav-submenu a{font-size:11px;padding:10px}
 @media(max-width:760px){.nav-submenu{display:flex;flex-shrink:0;gap:4px;margin-left:0;padding-left:4px}.nav-submenu a{flex:none}}

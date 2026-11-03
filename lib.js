@@ -88,28 +88,52 @@ export function upcomingTimedEvents(now = new Date()) {
   return scheduledTimedEvents(now).slice(0, 3);
 }
 
+// One navigation/landing contract for all six guild events.
+export const eventPages = {
+  airship: { name: 'Guild Airship', players: 'airship-players', officers: 'airship-officers' },
+  'guild-hunt': { name: 'Guild Hunt', players: 'guild-hunt-players', officers: 'guild-hunt-officers' },
+  'ember-wars': { name: 'Ember Wars', players: 'ember-wars-players', officers: 'ember-wars-officers' },
+  'arctic-showdown': { name: 'Arctic Showdown', players: 'arctic-showdown-players', officers: 'arctic-showdown-officers' },
+  'sandstorm-scuffle': { name: 'Sandstorm Scuffle', players: 'sandstorm-players', officers: 'sandstorm-officers' },
+  'guild-duel': { name: 'Guild Duel', players: 'guild-duel-players', officers: 'guild-duel-officers' },
+};
+
+export function eventLandingTimer(type, now = new Date()) {
+  if (!Object.hasOwn(eventPages, type)) throw new RangeError('Unknown event');
+  if (type === 'guild-duel') {
+    // Owner-confirmed 00:00 server reset. Sunday is preparation, not scoring.
+    const next = new Date(`${serverClock(now).date}T12:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    const weekday = next.getUTCDay();
+    return { label: `Next chapter · ${duelWeekdayPlan[weekday]?.theme || 'Sunday stockpile'}`, datetime: serverTimeOnDate(next.toISOString().slice(0, 10), '00:00').toISOString(), note: 'Daily reset: 00:00 server time. Sunday is preparation, not a seventh scoring day.' };
+  }
+  const next = scheduledTimedEvents(new Date(now.getTime() + 1)).find(event => event.type === type);
+  if (next) return { label: type === 'airship' ? 'Next departure' : 'Next confirmed start', datetime: next.datetime, note: 'Published schedule, not live game status. Check the current guild bulletin.' };
+  return { label: type === 'sandstorm-scuffle' ? 'Team battle time awaiting confirmation' : 'Next start awaiting confirmation', datetime: null, note: type === 'sandstorm-scuffle' ? 'Available Friday slots are not confirmed team bookings.' : type === 'arctic-showdown' ? 'Recorded stages have dates only; no start hour is supplied.' : 'No future timed start is recorded. A rotation without an anchor is not a confirmed date.' };
+}
+
 // Beginner copy is owned here, never separately transcribed into either page.
 // Practical suggestions and supplied guild guidance, not newly verified mechanics.
 export const eventBeginners = {
   airship: {
-    name: 'Guild Airship', href: '#calendar', title: 'Check the departure before making plans',
+    name: 'Guild Airship', href: '#airship-players', title: 'Check the departure before making plans',
     tips: ['Confirm the guild Airship departure in-game and check the server and local times on the calendar.', 'Ask Leadership what you should prepare and let the organizer know if your availability changes.', 'The Guild Duel task to dispatch a UR Airship is not the guild Airship departure.'],
     rules: [], caution: 'Published departure times are a schedule, not live departure status. Check in-game for delays or changes.',
   },
   'guild-hunt': {
-    name: 'Guild Hunt (Flappy)', href: '#calendar', title: 'Get ready for the rally',
+    name: 'Guild Hunt (Flappy)', href: '#guild-hunt-players', title: 'Get ready for the rally',
     tips: ['Confirm the hunt time and organizer in the latest guild bulletin.', 'Read the assigned objective and role, and check your available team and resources in-game.', 'New to rallies? Ask Leadership for a suitable role before joining.'],
     rules: ['Follow Leadership’s rally instructions and let the organizer know if your availability changes.'],
     caution: 'A three-day rotation is reported, but no rotation anchor is known. Only explicitly confirmed hunt starts can trigger this guidance.',
   },
   'ember-wars': {
-    name: 'Ember Wars', href: '#ember-wars', title: 'New or lower-power player?',
+    name: 'Ember Wars', href: '#ember-wars-players', title: 'New or lower-power player?',
     tips: ['Ask for a suitable support assignment. Staying with the group, watching approaches, and reporting enemy movement are useful contributions.', 'Not sure what to do? Ask: “I am new to Ember Wars. Where should I go, and what should I focus on?”', 'Check the current shield rules in-game before acting; ask how to help defend the generator while keeping your camp shielded.'],
     rules: ['Confirm your side and attacking or defending role with Leadership; Monday side selection can change the posted assignments.', 'Stay with your assigned group and follow the designated caller rather than choosing solo targets.'],
     caution: 'Use the in-game vote to signal likely participation, not a firm commitment. Current in-game rules and Leadership’s calls take priority.',
   },
   'arctic-showdown': {
-    name: 'Arctic Showdown', href: '#arctic-showdown', title: 'Know your number before attacking',
+    name: 'Arctic Showdown', href: '#arctic-showdown-players', title: 'Know your number before attacking',
     tips: ['Check the active stage, qualification, available attacks and deadline in-game.', 'Confirm your position number and assigned target with Leadership before using an attack.'],
     rules: ['PHNX first-attack guidance: match your position number; position #1 attacks #1.', 'Leave weaker side targets for their intended players. If a target is occupied or you need a follow-up assignment, ask Leadership; do not automatically move to the next number.'],
     caution: 'This is supplied PHNX guidance, not a universal event rule. No exact stage start times are confirmed on this site.',

@@ -1,6 +1,33 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer } from './lib.js?v=320d04b75be5c15a976a';
 
 const $ = selector => document.querySelector(selector);
+for (const [type, event] of Object.entries(eventPages)) {
+  let parent = $(`nav a[data-page="${type}"]`);
+  if (!parent) {
+    parent = document.createElement('a'); parent.href = `#${type}`; parent.dataset.page = type;
+    const icon = document.createElement('img'); icon.src = `./assets/events/${type}.webp`;
+    icon.className = 'nav-event-icon'; icon.width = icon.height = 24; icon.alt = '';
+    parent.append(icon, event.name); $('nav a[data-page="guild-duel"]').before(parent);
+  }
+  let submenu = document.getElementById(parent.getAttribute('aria-controls'));
+  if (!submenu) {
+    submenu = document.createElement('div'); submenu.id = `${type}-submenu`;
+    submenu.className = 'nav-submenu'; submenu.hidden = true;
+    submenu.setAttribute('role', 'group'); submenu.setAttribute('aria-label', `${event.name} pages`);
+    for (const [id, name] of [[event.players, 'Players'], [event.officers, 'Officers & callers']]) {
+      const link = document.createElement('a'); link.href = `#${id}`; link.dataset.page = id; link.textContent = name;
+      submenu.append(link);
+    }
+    parent.after(submenu); parent.setAttribute('aria-controls', submenu.id);
+  }
+  parent.setAttribute('aria-expanded', 'false');
+  for (const node of [parent, submenu, ...submenu.children, ...[type, event.players, event.officers].map(id => $(`#${id}-view`))]) node.dataset.event = type;
+  const landing = $(`#${type}-view`);
+  const intro = landing.querySelector('.ember-intro');
+  const links = landing.querySelector(`a[href="#${event.players}"]`).closest('p');
+  links.classList.add('event-page-links');
+  if (!intro.contains(links)) intro.append(links);
+}
 // One event identity follows its navigation, static panels and dynamic entries.
 const eventSurfaces = {
   airship: '.airship-panel, #guild-schedule article:first-child',
@@ -17,10 +44,9 @@ for (const [event, selector] of Object.entries(eventSurfaces)) {
 const eventArtwork = [
   ['airship', '.airship-panel, #guild-schedule article:first-child'],
   ['guild-hunt', '.notice-panel, #guild-schedule article:last-child'],
-  ['ember-wars', '#ember-wars-view .ember-intro, [aria-labelledby="ember-callout-title"]'],
-  ['arctic-showdown', '#arctic-showdown-view .ember-intro'],
-  ['sandstorm-scuffle', '#sandstorm-scuffle-view .ember-intro, #sandstorm-players-view .ember-intro, #sandstorm-officers-view .ember-intro, [aria-labelledby="sandstorm-callout-title"]'],
-  ['guild-duel', '#guild-duel-view .ember-intro, #guild-duel-players-view .ember-intro, #guild-duel-officers-view .ember-intro'],
+  ['ember-wars', '[aria-labelledby="ember-callout-title"]'],
+  ['sandstorm-scuffle', '[aria-labelledby="sandstorm-callout-title"]'],
+  ...Object.entries(eventPages).map(([type, event]) => [type, [type, event.players, event.officers].map(id => `#${id}-view .ember-intro`).join(', ')]),
 ];
 for (const [event, selector] of eventArtwork) {
   document.querySelectorAll(selector).forEach(container => {
@@ -104,6 +130,32 @@ function eventCountdownNode(datetime) {
   updateEventCountdown(node, new Date());
   return node;
 }
+function renderLandingTimers(now) {
+  for (const type of Object.keys(eventPages)) {
+    const timer = eventLandingTimer(type, now);
+    const intro = $(`#${type}-view > .ember-intro`);
+    let panel = intro.querySelector('.event-landing-timer');
+    if (!panel) {
+      panel = document.createElement('div'); panel.className = 'event-landing-timer';
+      intro.querySelector('h2').after(panel);
+    }
+    const key = JSON.stringify(timer);
+    if (panel.dataset.key !== key) {
+      panel.dataset.key = key;
+      const label = document.createElement('p'); label.className = 'eyebrow'; label.textContent = timer.label;
+      const value = document.createElement('strong'); value.className = 'landing-countdown-value';
+      const times = document.createElement('p'); times.className = 'small';
+      if (timer.datetime) {
+        const time = document.createElement('time'); time.dateTime = timer.datetime;
+        time.textContent = `${serverDepartureFormat.format(new Date(timer.datetime))} server · ${departureFormat.format(new Date(timer.datetime))} local`;
+        times.append(time);
+      } else value.textContent = 'Time to be confirmed';
+      const note = document.createElement('p'); note.className = 'small muted'; note.textContent = timer.note;
+      panel.replaceChildren(label, value, times, note);
+    }
+    if (timer.datetime) panel.querySelector('.landing-countdown-value').textContent = countdownUntil(new Date(timer.datetime), now);
+  }
+}
 document.querySelectorAll('[data-local-time]').forEach(node => node.after(eventCountdownNode(node.dataset.localTime)));
 const upcomingSection = document.createElement('section');
 upcomingSection.className = 'upcoming-events';
@@ -121,7 +173,7 @@ function renderUpcomingEvents(now) {
     const card = document.createElement('article'); card.className = 'upcoming-card ember-panel';
     card.dataset.event = event.type;
     const title = document.createElement('h3');
-    const link = document.createElement('a'); link.href = event.type === 'airship' || event.type === 'guild-hunt' ? '#calendar' : `#${event.type}`; link.textContent = event.title;
+    const link = document.createElement('a'); link.href = `#${event.type}`; link.textContent = event.title;
     title.append(link);
     const countdown = eventCountdownNode(event.datetime);
     const times = document.createElement('dl'); times.className = 'departure-times';
@@ -329,6 +381,7 @@ function updateClocks() {
   updateAirship(now);
   updateLocalTimes(now);
   renderUpcomingEvents(now);
+  renderLandingTimers(now);
   renderBeginnerEvents(now);
   if (state.day !== clock.date) {
     state.day = clock.date;
@@ -512,6 +565,11 @@ const pages = {
   'sandstorm-officers': ['Sandstorm · Officers & callers', 'Call the play. Lead together.', 'Roster planning, structure priorities and scoring reference.'],
   community: ['Community guidelines', 'Respect. Show up. Rise together.', 'PHNX guild expectations, activity rules, accountability, and server #268 policy.'],
 };
+for (const [type, event] of Object.entries(eventPages)) {
+  pages[type] ||= [event.name, 'One guild. One direction.', 'Event timing, overview and recorded PHNX updates.'];
+  pages[event.players] ||= [`${event.name} · Players`, 'Show up ready.', 'Player preparation and guild guidance.'];
+  pages[event.officers] ||= [`${event.name} · Officers & callers`, 'Lead together.', 'Organizer coordination and caller guidance.'];
+}
 function navigate() {
   const page = Object.hasOwn(pages, location.hash.slice(1)) ? location.hash.slice(1) : 'dashboard';
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.id !== `${page}-view`; });
@@ -519,13 +577,11 @@ function navigate() {
     if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
-  for (const [parent, submenu, children] of [
-    ['sandstorm-scuffle', 'sandstorm-submenu', ['sandstorm-players', 'sandstorm-officers']],
-    ['guild-duel', 'duel-submenu', ['guild-duel-players', 'guild-duel-officers']],
-  ]) {
-    const active = page === parent || children.includes(page);
-    $(`#${submenu}`).hidden = !active;
-    $(`nav a[data-page="${parent}"]`).setAttribute('aria-expanded', String(active));
+  for (const [type, event] of Object.entries(eventPages)) {
+    const active = [type, event.players, event.officers].includes(page);
+    const parent = $(`nav a[data-page="${type}"]`);
+    document.getElementById(parent.getAttribute('aria-controls')).hidden = !active;
+    parent.setAttribute('aria-expanded', String(active));
   }
   const [name, heading, subheading] = pages[page];
   $('#page-name').textContent = name; $('#heading').textContent = heading; $('#subheading').textContent = subheading;
@@ -540,7 +596,7 @@ $('#site-search').addEventListener('input', event => {
   const query = event.target.value;
   const entries = Object.entries(pages).map(([id, [title, heading, description]]) => {
     const content = $(`#${id}-view`).cloneNode(true);
-    content.querySelectorAll('.event-countdown, .airship-countdown, .upcoming-events, [data-guide], input, select, button').forEach(node => node.remove());
+    content.querySelectorAll('.event-countdown, .event-landing-timer, .airship-countdown, .upcoming-events, [data-guide], input, select, button').forEach(node => node.remove());
     return { id, title, text: `${heading} ${description} ${content.textContent}`.replace(/\s+/g, ' ').trim() };
   });
   entries.push(...guides.map(guide => ({ id: guide.id, title: guide.title, text: `${guide.category} ${guide.description} ${guide.steps.join(' ')}`, guide: true })));
