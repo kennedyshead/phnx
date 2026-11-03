@@ -75,12 +75,19 @@ const departureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', y
 const serverDepartureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Etc/GMT+2' });
 function updateEventCountdown(node, now) {
   const start = new Date(node.dataset.eventCountdown);
-  node.textContent = start < now ? 'Scheduled start passed · check in-game' : `Scheduled start in ${countdownUntil(start, now)} (hours : minutes : seconds)`;
+  node.hidden = Boolean(node.closest('#calendar-view')) && serverClock(start).date !== serverClock(now).date;
+  const passed = start < now;
+  node.querySelector('.countdown-label').textContent = passed ? 'Check in-game' : 'Starts in';
+  node.querySelector('.countdown-value').textContent = passed ? 'Start time passed' : countdownUntil(start, now);
+  node.classList.toggle('is-past', passed);
 }
 function eventCountdownNode(datetime) {
   const node = document.createElement('span');
   node.className = 'event-countdown';
   node.dataset.eventCountdown = datetime;
+  const label = document.createElement('span'); label.className = 'countdown-label';
+  const value = document.createElement('strong'); value.className = 'countdown-value';
+  node.append(label, value);
   updateEventCountdown(node, new Date());
   return node;
 }
@@ -98,16 +105,24 @@ function renderUpcomingEvents(now) {
   const heading = document.createElement('h2'); heading.id = 'upcoming-title'; heading.textContent = 'Next up · guild countdowns';
   const cards = document.createElement('div'); cards.className = 'upcoming-grid';
   for (const event of events) {
-    const card = document.createElement('article'); card.className = 'upcoming-card';
+    const card = document.createElement('article'); card.className = 'upcoming-card ember-panel';
     const title = document.createElement('h3');
     const link = document.createElement('a'); link.href = event.type === 'airship' || event.type === 'guild-hunt' ? '#calendar' : `#${event.type}`; link.textContent = event.title;
     title.append(link);
     const countdown = eventCountdownNode(event.datetime);
-    const server = document.createElement('p'); server.textContent = `${serverDepartureFormat.format(new Date(event.datetime))} server (UTC−2)`;
-    const local = document.createElement('p'); local.textContent = `${departureFormat.format(new Date(event.datetime))} local`;
-    card.append(title, countdown, server, local); cards.append(card);
+    const times = document.createElement('dl'); times.className = 'departure-times';
+    for (const [label, text] of [['Server time', `${serverDepartureFormat.format(new Date(event.datetime))} · UTC−2`], ['Your local time', departureFormat.format(new Date(event.datetime))]]) {
+      const group = document.createElement('div');
+      const term = document.createElement('dt'); term.textContent = label;
+      const description = document.createElement('dd');
+      const time = document.createElement('time'); time.dateTime = event.datetime; time.textContent = text;
+      description.append(time); group.append(term, description); times.append(group);
+    }
+    const source = document.createElement('p'); source.className = 'timing-source';
+    source.textContent = event.type === 'ember-wars' ? '13:30 announced · server timezone assumed; confirm in-game.' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
+    card.append(title, countdown, times, source); cards.append(card);
   }
-  const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Confirmed times only. Date-only events remain in the calendar. Countdown hours can exceed 24; confirm changes in-game.';
+  const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Based on supplied schedules, not a live game feed. Check the latest in-game bulletin for changes. Events without a start time remain in the calendar.';
   upcomingSection.replaceChildren(heading, cards, note);
 }
 function updateLocalTimes(now) {
@@ -176,7 +191,8 @@ function renderCalendar() {
         const time = document.createElement('time');
         time.dateTime = event.datetime;
         time.textContent = `${event.time} server · ${departureFormat.format(new Date(event.datetime))} local`;
-        details.append(time, eventCountdownNode(event.datetime));
+        details.append(time);
+        if (event.date === calendarDay) details.append(eventCountdownNode(event.datetime));
       } else details.textContent = 'Time not supplied';
       item.append(image, title, details);
       list.append(item);
@@ -209,6 +225,10 @@ renderCalendar();
 function updateAirship(now) {
   const departure = nextAirship(now);
   document.querySelectorAll('[data-airship-countdown]').forEach(node => { node.textContent = countdownUntil(departure, now); });
+  const calendarPanel = $('#calendar-view .airship-panel');
+  const isToday = serverClock(departure).date === serverClock(now).date;
+  calendarPanel.querySelector('[data-airship-countdown]').hidden = !isToday;
+  calendarPanel.querySelector('.eyebrow').hidden = !isToday;
   document.querySelectorAll('[data-airship-server]').forEach(node => {
     node.textContent = `${serverDepartureFormat.format(departure)} · UTC−2`;
     node.dateTime = departure.toISOString();
@@ -365,6 +385,7 @@ document.addEventListener('click', event => {
 $('#close-dialog').onclick = $('#done-dialog').onclick = () => $('#guide-dialog').close();
 const pages = {
   dashboard: ['Overview', 'From the frost, we rise.', 'One guild. One fire. A rising phoenix in a frozen world.'],
+  'new-to-game': ['New to the game', 'A strong start, together.', 'Your daily checklist, everyday essentials, and starter guides for life with PHNX.'],
   guides: ['Survival guides', 'Knowledge keeps us warm.', 'Practical starter checklists for the road ahead.'],
   calendar: ['Guild calendar', 'Better, when we’re together.', 'The guild schedule, with your next Airship departure in server and local time.'],
   playbooks: ['Guild playbooks', 'One guild. One direction.', 'Simple preparation for coordinated guild play.'],
