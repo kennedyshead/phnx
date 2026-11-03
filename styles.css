@@ -111,3 +111,122 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 .beginner-card h4{font-size:14px;line-height:1.5;margin:20px 0 8px}
 .beginner-card .beginner-timing{font-size:12px;line-height:1.7;margin:0 0 16px;color:#52616b}
 .beginner-card .text-link{display:inline-block;margin-top:12px}
+/* Catppuccin Latte / Mocha. All UI colors below come from these two palettes.
+   light-dark() gives a correct OS default without waiting for JavaScript. */
+:root{
+  color-scheme:light dark;
+  --base:light-dark(#eff1f5,#1e1e2e);--mantle:light-dark(#e6e9ef,#181825);--crust:light-dark(#dce0e8,#11111b);
+  --text:light-dark(#4c4f69,#cdd6f4);--subtext:light-dark(#5c5f77,#bac2de);
+  --surface0:light-dark(#ccd0da,#313244);--surface1:light-dark(#bcc0cc,#45475a);
+  --blue:light-dark(#1e66f5,#89b4fa);--green-ctp:light-dark(#40a02b,#a6e3a1);
+  --teal:light-dark(#179299,#94e2d5);--peach:light-dark(#fe640b,#fab387);
+  --yellow:light-dark(#df8e1d,#f9e2af);--mauve:light-dark(#8839ef,#cba6f7);
+  --red:light-dark(#d20f39,#f38ba8);--rosewater:light-dark(#dc8a78,#f5e0dc);
+  --ink:var(--text);--muted:var(--subtext);--green:var(--mauve);--paper:var(--base);--line:var(--surface0);--orange:var(--peach);
+  --button-text:light-dark(#eff1f5,#1e1e2e);
+  --shadow:color-mix(in srgb,var(--crust) 65%,transparent);
+  background:var(--paper);color:var(--ink);accent-color:var(--blue);
+}
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+[data-event]{--muted:var(--subtext);--event-bg:color-mix(in srgb,var(--event-accent) 9%,var(--base));--event-border:color-mix(in srgb,var(--event-accent) 40%,var(--surface0))}
+[data-event="airship"]{--event-accent:var(--blue)}
+[data-event="guild-hunt"]{--event-accent:var(--green-ctp)}
+[data-event="ember-wars"]{--event-accent:var(--peach)}
+[data-event="arctic-showdown"]{--event-accent:var(--teal)}
+[data-event="sandstorm-scuffle"]{--event-accent:var(--yellow)}
+[data-event="guild-duel"]{--event-accent:var(--mauve)}
+/* Surface and type overrides cover the original three templates and every control. */
+:root :is(.sidebar,.topbar,.date-display,.priorities-panel,.event-card,.ember-panel,.upcoming-card,.site-search,dialog,.skip-link,.guide-card,.guide-card.coal,.guide-card.rally),:root #site-search-feedback{background:var(--mantle);color:var(--text);border-color:var(--line)}
+:root .view[data-layout]>.ember-intro{background:var(--mantle)}
+:root :is(.guild-card,.guild-avatar,.member-avatar,.small-avatar,.priority-icon,.event-icon,.count,.calendar-actions button,.calendar-controls select,.icon-button){background:var(--surface0);color:var(--text);border-color:var(--surface1)}
+:root :is(.brand small,.nav-label,.sidebar-bottom p,.version,.breadcrumb,.breadcrumb span,.breadcrumb strong,.local-badge,.eyebrow,.priority-copy>span,.notice-tag,.notice-panel>p,.notice-author small,.event-type,.event-card p,.event-time,.guide-category,.guide-description,.guide-bottom,.guide-card .guide-description,.guide-card .guide-bottom,.calendar-day li>span,.beginner-card .beginner-timing,footer,footer strong){color:var(--subtext)}
+:root :is(.guild-star,.winter-icon,.guide-art,.coal .guide-art,.rally .guide-art){color:var(--mauve)}
+:root .status-dot,:root .local-badge:before{background:var(--green-ctp)}
+:root nav a{color:var(--subtext)}
+:root nav a:hover{background:var(--surface0);color:var(--text)}
+:root nav a[aria-current]{background:var(--surface0);color:var(--text);font-weight:750}
+:root nav a[aria-current]:after{background:var(--blue)}
+:root :is(.preview-note,.verification){background:color-mix(in srgb,var(--yellow) 10%,var(--mantle));border-color:var(--yellow);color:var(--text)!important}
+:root .preview-note strong{color:var(--text)}
+:root .brand-mark{color:var(--peach)}
+:root .results-table thead{background:var(--mantle)}
+:root .notice-panel{background:var(--mantle);border-color:var(--line)}
+:root .notice-panel:after{color:color-mix(in srgb,var(--mauve) 8%,transparent)}
+:root .ember-callout{background:var(--mantle);border-color:var(--line)}
+:root :is(.site-search input,.topbar .site-search input,.guide-toolbar input){background:var(--base);color:var(--text);border-color:var(--surface1)}
+:root input::placeholder{color:var(--subtext);opacity:1}
+:root :is(.text-link,.ember-resources a,.site-search li>a,.site-search li>button){color:var(--mauve);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+:root :is(.text-link,.ember-resources a):hover{text-decoration-thickness:2px}
+:root :is(.primary,.button.primary,.ember-callout[data-event] .button.primary){background:var(--mauve);color:var(--button-text);border-color:var(--mauve)}
+:root :is(button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.results-scroll:focus-visible){outline:3px solid var(--mauve);outline-offset:4px}
+:root .priority input:focus-visible+.checkmark{outline-color:var(--mauve)}
+:root :is(.priority,.guide-bottom,.example-label){border-color:var(--line)}
+:root .example-label{color:var(--subtext)}
+:root .checkmark{border-color:var(--subtext)}
+:root .priority input:checked+.checkmark{background:var(--blue);border-color:var(--blue)}
+:root .priority input:checked+.checkmark:after{color:var(--button-text)}
+:root .priority:has(input:checked) .priority-copy strong{color:var(--subtext)}
+:root .progress-track{background:var(--surface0)}
+:root #progress-fill{background:var(--blue)}
+:root .checklist-status,:root .priority .checklist-status{color:var(--text)}
+:root .priority[data-status="done"]{background:color-mix(in srgb,var(--green-ctp) 12%,var(--base))}
+:root .priority[data-status="failed"]{background:color-mix(in srgb,var(--red) 12%,var(--base))}
+:root .priority[data-status="failed"] .checklist-status{color:var(--red)}
+:root .calendar-day{background:var(--base)}
+:root .calendar-day.is-today{background:color-mix(in srgb,var(--mauve) 8%,var(--base));border-color:var(--mauve)}
+:root .results-table tr.match-result{background:linear-gradient(100deg,color-mix(in srgb,var(--blue) 12%,var(--base)) 38%,color-mix(in srgb,var(--peach) 12%,var(--base)) 65%);border-color:var(--surface1);box-shadow:0 3px 0 var(--crust)}
+:root .results-table tr.match-result>th,:root .results-table tr.match-result>td:nth-child(5){background:var(--mantle);border-color:var(--surface1);color:var(--text)}
+:root .results-table td>strong{color:var(--text)}
+:root .match-loss>td:last-child{color:var(--red)!important}
+:root .duel-snapshot{background:color-mix(in srgb,var(--mauve) 8%,var(--base))}
+:root .guide-card:hover{box-shadow:0 7px 18px var(--shadow)}
+:root dialog{box-shadow:0 25px 100px var(--shadow)}
+:root dialog::backdrop{background:color-mix(in srgb,var(--crust) 75%,transparent)}
+:root #toast{background:var(--text);color:var(--base);box-shadow:0 8px 30px var(--shadow)}
+:root #site-search-feedback{box-shadow:0 8px 28px var(--shadow)}
+/* Hero artwork retains its own colors; its text zone uses Catppuccin Mocha in both modes. */
+:root .hero{background:#1e1e2e;color:#cdd6f4}
+:root .hero-art{background-color:#1e1e2e}
+:root .hero-art:after{background:linear-gradient(90deg,#1e1e2efc 0%,#1e1e2ef2 25%,#1e1e2ed9 43%,#1e1e2e66 70%,#1e1e2e33 100%),linear-gradient(0deg,#1e1e2ecc,transparent 40%)}
+:root .hero p{color:#cdd6f4;font-size:14px}
+:root .hero :is(.hero-caption,.hero-pill,.event-countdown){color:#f9e2af}
+:root .hero-caption{text-shadow:0 1px 4px #1e1e2e}
+:root .hero-pill{background:#1e1e2ecc;border-color:#f9e2af}
+:root .hero-pill .status-dot{background:#fab387}
+:root .hero .button.light{background:#fab387;color:#1e1e2e}
+/* Tints remain supplemental: every event has a name and local artwork. */
+:root :is(.upcoming-card,.notice-panel,.ember-callout,.airship-panel,.guide-card,.beginner-card,.priority)[data-event],:root #guild-schedule article[data-event],:root .calendar-day li[data-event],:root .view[data-event] .ember-panel,:root .view[data-event] .ember-intro{background:var(--event-bg);border-color:var(--event-border)}
+:root nav a[data-event]{background:var(--event-bg);color:var(--text)}
+:root nav a[data-event]:hover,:root nav a[data-event][aria-current]{background:var(--event-bg);color:var(--text);box-shadow:inset 4px 0 var(--event-accent)}
+:root .notice-panel[data-event] :is(p,.notice-tag,.notice-author small){color:var(--subtext)}
+:root :is(.priority .priority-tag,.guide-card .guide-category,.view[data-layout]>.ember-intro .eyebrow,.upcoming-card h3,.ember-callout .eyebrow,.beginner-card .eyebrow,.event-landing-timer .eyebrow){color:var(--text)}
+.ui-icon{width:20px;height:20px;flex-shrink:0;vertical-align:middle}
+.theme-controls{display:flex;gap:4px;align-items:center}
+.theme-controls button{display:flex;align-items:center;gap:7px;min-height:40px;padding:8px 10px;border:1px solid var(--surface1);border-radius:8px;background:var(--base);color:var(--text);font-size:12px;white-space:nowrap}
+.theme-controls button:hover{background:var(--surface0)}
+.theme-controls button[aria-pressed="true"]{border-color:var(--blue);box-shadow:inset 0 -2px var(--blue)}
+.event-page-links{display:flex;flex-wrap:wrap;gap:12px;font-size:0!important}
+.event-page-links a{flex:1 1 240px;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--event-border);border-radius:10px;background:var(--base);text-decoration:none!important;color:var(--text)!important}
+.event-page-links a:hover{border-color:var(--event-accent);background:var(--mantle)}
+.event-page-links a>span{flex:1}
+.event-page-links strong{display:block;font-size:14px}
+.event-page-links small{display:block;font-size:12px;font-weight:400;color:var(--subtext);margin-top:4px}
+.event-page-links a>.ui-icon:first-child{width:26px;height:26px;color:var(--text)}
+.event-page-links a>.ui-icon:last-child{width:16px}
+.playbook-art{object-fit:cover;border-radius:9px;margin-bottom:12px}
+.external-link{display:grid;grid-template-columns:22px 1fr;gap:6px 10px;align-items:start;padding:12px;border:1px solid var(--surface1);border-radius:9px;background:var(--base);text-decoration:none!important}
+.external-link:hover{border-color:var(--blue);background:var(--mantle)}
+.external-title{text-decoration:underline;text-underline-offset:4px;font-size:14px!important;color:var(--mauve)!important}
+.external-destination{grid-column:2;color:var(--subtext);font-size:12px;line-height:1.6}
+.ember-resources{list-style:none;padding-left:0!important}
+.ember-resources .external-link .external-title{display:inline}
+:root .landing-updates .notice-tag{font-size:10px}
+:root .landing-updates .notice-panel>p{font-size:14px;line-height:1.7}
+:root .notice-author small{font-size:11px}
+:root .preview-note p{font-size:12px;line-height:1.7}
+:root .priority-copy>span{font-size:12px}
+:root .priority-copy .priority-tag{font-size:10px}
+:root .priority-copy strong{font-size:14px}
+@media(max-width:760px){.theme-controls{margin-left:auto}.theme-controls button{min-height:44px}.topbar .breadcrumb{flex:1 1 120px}.topbar .site-search{flex-basis:100%}:root nav .ui-icon{display:block;width:18px;height:18px}:root .hero-art:after{background:linear-gradient(90deg,#1e1e2ef5,#1e1e2eb3),linear-gradient(0deg,#1e1e2ecc,transparent 60%)}:root .hero-content{padding-bottom:64px}:root .hero-caption{font-size:8px}:root .hero p{font-size:13px}}
+@media(forced-colors:active){.theme-controls button[aria-pressed="true"],nav a[aria-current]{outline:2px solid Highlight}.ui-icon{forced-color-adjust:auto}}

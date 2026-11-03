@@ -1,6 +1,63 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=b1a79336c954985166d6';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=beeb7f6645e39268eb44';
 
 const $ = selector => document.querySelector(selector);
+// CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
+const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+let themePreference = null;
+try {
+  const saved = localStorage.getItem('phnx-theme');
+  if (saved === 'light' || saved === 'dark') themePreference = saved;
+} catch { /* The theme still works when browser storage is unavailable. */ }
+function icon(name) {
+  const paths = {
+    moon: 'M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z',
+    sun: 'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+    arrow: 'M5 12h14m-6-6 6 6-6 6',
+    external: 'M14 3h7v7m0-7L10 14M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5',
+    players: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.9M13 3.1a4 4 0 0 1 0 7.8M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+    officers: 'm12 3 9 4v5c0 5-9 9-9 9s-9-4-9-9V7l9-4Zm-4 9 3 3 5-6',
+    checklist: 'm3 6 2 2 3-4m3 2h10M3 13l2 2 3-4m3 2h10M3 20l2 2 3-4m3 2h10',
+    calendar: 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z',
+    book: 'M12 5v16M3 3l9 2 9-2v16l-9 2-9-2V3Z',
+    home: 'm3 10 9-7 9 7v11h-7v-7h-4v7H3V10Z',
+  };
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.8'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+  svg.classList.add('ui-icon');
+  const path = document.createElementNS(svg.namespaceURI, 'path'); path.setAttribute('d', paths[name] || paths.arrow);
+  svg.append(path); return svg;
+}
+function applyTheme() {
+  if (themePreference) document.documentElement.dataset.theme = themePreference;
+  else delete document.documentElement.dataset.theme;
+  const dark = themePreference ? themePreference === 'dark' : systemTheme.matches;
+  $('#theme-toggle').setAttribute('aria-pressed', String(dark));
+  $('#theme-toggle').replaceChildren(icon(dark ? 'moon' : 'sun'), 'Dark mode');
+  $('#theme-toggle').title = `Catppuccin ${dark ? 'Mocha' : 'Latte'} · ${themePreference ? 'manual choice' : 'following your OS'}`;
+  $('#theme-system').setAttribute('aria-pressed', String(!themePreference));
+  document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+    meta.content = dark ? '#1e1e2e' : '#eff1f5';
+  });
+}
+function chooseTheme(preference) {
+  themePreference = preference;
+  try {
+    if (preference) localStorage.setItem('phnx-theme', preference);
+    else localStorage.removeItem('phnx-theme');
+  } catch { /* Keep the selected theme in memory for this tab. */ }
+  applyTheme();
+}
+$('#theme-toggle').addEventListener('click', () => chooseTheme((themePreference ? themePreference === 'dark' : systemTheme.matches) ? 'light' : 'dark'));
+$('#theme-system').addEventListener('click', () => chooseTheme(null));
+systemTheme.addEventListener('change', applyTheme);
+window.addEventListener('storage', event => {
+  if (event.key !== 'phnx-theme' && event.key !== null) return;
+  themePreference = ['light', 'dark'].includes(event.newValue) ? event.newValue : null;
+  applyTheme();
+});
+applyTheme();
 let seasonKey = null;
 for (const [type, event] of Object.entries(eventPages)) {
   let parent = $(`nav a[data-page="${type}"]`);
@@ -568,6 +625,41 @@ $('#ember-resources').replaceChildren(...emberWars.resources.map(resource => {
   return item;
 }));
 $('#playbook-list').innerHTML = guideCards(guides.filter(guide => !seasons.some(season => season.guideIds.includes(guide.id))));
+// External resources stay alongside their subject, with destination and tab behavior
+// visible on every link. Never embed or automatically fetch third-party resources.
+for (const link of document.querySelectorAll('a[href^="https://"]')) {
+  link.classList.add('external-link');
+  const label = document.createElement('span'); label.className = 'external-title';
+  label.textContent = link.textContent.replace(/\s*↗\s*$/, '');
+  const context = document.createElement('small'); context.className = 'external-destination';
+  context.textContent = `${new URL(link.href).hostname.replace(/^www\./, '')} · opens in a new tab`;
+  link.target = '_blank'; link.rel = 'noopener noreferrer';
+  link.replaceChildren(icon('external'), label, context);
+}
+for (const [page, name] of Object.entries({ dashboard: 'home', 'new-to-game': 'checklist', seasons: 'book', calendar: 'calendar', playbooks: 'book', community: 'officers' })) {
+  const marker = $(`nav a[data-page="${page}"] > span`);
+  if (marker) marker.replaceWith(icon(name));
+}
+for (const [type, event] of Object.entries(eventPages)) {
+  for (const [page, symbol, description] of [[event.players, 'players', 'Preparation, rules & personal checklist'], [event.officers, 'officers', 'Coordination, assignments & calling']]) {
+    const link = $(`#${type}-view .event-page-links a[href="#${page}"]`);
+    const title = document.createElement('strong'); title.textContent = symbol === 'players' ? 'Player guide' : 'Officers & callers';
+    const caption = document.createElement('small'); caption.textContent = description;
+    const copy = document.createElement('span'); copy.append(title, caption);
+    link.replaceChildren(icon(symbol), copy, icon('arrow'));
+  }
+}
+for (const card of document.querySelectorAll('#playbooks-view a.guide-card[data-event]')) {
+  const image = document.createElement('img'); image.className = 'playbook-art'; image.alt = '';
+  image.width = image.height = 44; image.src = `./assets/events/${card.dataset.event}.webp`;
+  card.prepend(image);
+}
+// Internal navigation uses a straight arrow, reserving the out-of-site mark for resources.
+const internalText = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+while (internalText.nextNode()) {
+  const node = internalText.currentNode;
+  if (node.parentElement.closest('a[href^="#"], [data-guide]')) node.textContent = node.textContent.replaceAll('↗', '→');
+}
 $('#guide-search').addEventListener('input', event => {
   const query = event.target.value.trim().toLowerCase();
   const season = referenceSeason();
