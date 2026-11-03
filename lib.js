@@ -150,9 +150,9 @@ export function prioritiesForDate(now = new Date()) {
     'sandstorm-scuffle': ['Check Sandstorm Scuffle registration and assignments', 'This is a recorded event-window date, not a confirmed battle time. Check voting, registration and squad instructions in-game.'],
   };
   const events = calendarEvents(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1).filter(event => event.date === date).map(event => ({
-    id: `event-${event.type}-${date}`, title: eventTasks[event.type][0], detail: `${event.title}. ${eventTasks[event.type][1]}`, tag: 'GUILD EVENT', icon: '◈', group: 'today', time: event.time, datetime: event.datetime,
+    id: `event-${event.type}-${date}`, eventType: event.type, title: eventTasks[event.type][0], detail: `${event.title}. ${eventTasks[event.type][1]}`, tag: 'GUILD EVENT', icon: '◈', group: 'today', time: event.time, datetime: event.datetime,
   }));
-  return [...daily, ...events, ...priorities.map(item => ({ ...item, group: 'everyday' }))];
+  return [...daily.map(item => item.id.startsWith('duel-') ? { ...item, eventType: 'guild-duel' } : item), ...events, ...priorities.map(item => ({ ...item, group: 'everyday' }))];
 }
 export const guides = [
   { id: 'cold', category: 'SURVIVAL', title: 'Keep the cold outside.', description: 'A simple starting point for generator checks and blizzard preparation.', icon: '❄', steps: ['Check the current weather and warnings in-game.', 'Review generator fuel and your current heating needs.', 'Check cold resistance on the relevant in-game screens.', 'Ask an officer about priorities before spending scarce supplies.'] },

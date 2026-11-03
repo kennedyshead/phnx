@@ -1,6 +1,18 @@
 import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
 
 const $ = selector => document.querySelector(selector);
+// One event identity follows its navigation, static panels and dynamic entries.
+const eventSurfaces = {
+  airship: '.airship-panel, #guild-schedule article:first-child',
+  'guild-hunt': '.notice-panel, #guild-schedule article:last-child',
+  'ember-wars': '#ember-wars-view, [aria-labelledby="ember-callout-title"], nav a[href="#ember-wars"]',
+  'arctic-showdown': '#arctic-showdown-view, nav a[href="#arctic-showdown"]',
+  'sandstorm-scuffle': '#sandstorm-scuffle-view, [aria-labelledby="sandstorm-callout-title"], nav a[href="#sandstorm-scuffle"]',
+  'guild-duel': '#guild-duel-view, nav a[href="#guild-duel"]',
+};
+for (const [event, selector] of Object.entries(eventSurfaces)) {
+  document.querySelectorAll(selector).forEach(node => { node.dataset.event = event; });
+}
 // Decorative artwork: the adjacent headings already identify each event.
 const eventArtwork = [
   ['airship', '.airship-panel, #guild-schedule article:first-child'],
@@ -107,6 +119,7 @@ function renderUpcomingEvents(now) {
   const cards = document.createElement('div'); cards.className = 'upcoming-grid';
   for (const event of events) {
     const card = document.createElement('article'); card.className = 'upcoming-card ember-panel';
+    card.dataset.event = event.type;
     const title = document.createElement('h3');
     const link = document.createElement('a'); link.href = event.type === 'airship' || event.type === 'guild-hunt' ? '#calendar' : `#${event.type}`; link.textContent = event.title;
     title.append(link);
@@ -180,6 +193,7 @@ function renderCalendar() {
     const dayEvents = events.filter(event => event.date === date);
     for (const event of dayEvents) {
       const item = document.createElement('li');
+      item.dataset.event = event.type;
       const image = document.createElement('img');
       image.src = `./assets/events/${event.type}.webp`;
       image.alt = '';
@@ -322,6 +336,7 @@ function renderChecklist(now = new Date()) {
       const label = document.createElement('label');
       label.className = 'priority';
       label.dataset.status = statuses.get(item.id);
+      if (item.eventType) label.dataset.event = item.eventType;
       const icon = document.createElement('span');
       icon.className = 'priority-icon'; icon.textContent = item.icon; icon.setAttribute('aria-hidden', 'true');
       const copy = document.createElement('span'); copy.className = 'priority-copy';
@@ -454,6 +469,7 @@ $('#site-search').addEventListener('input', event => {
   });
   entries.push(...guides.map(guide => ({ id: guide.id, title: guide.title, text: `${guide.category} ${guide.description} ${guide.steps.join(' ')}`, guide: true })));
   const matches = searchEntries(entries, query);
+  $('#site-search-feedback').hidden = !query.trim();
   const results = $('#site-search-results');
   results.replaceChildren(...matches.map(entry => {
     const item = document.createElement('li');
@@ -467,6 +483,7 @@ $('#site-search').addEventListener('input', event => {
       link.addEventListener('click', () => {
         location.hash = entry.id;
         navigate();
+        $('#site-search-feedback').hidden = true;
         $('#main').focus();
       });
     }
@@ -484,4 +501,10 @@ $('#site-search').addEventListener('keydown', event => {
     event.target.value = '';
     event.target.dispatchEvent(new Event('input'));
   }
+});
+$('#site-search').addEventListener('focus', () => {
+  $('#site-search-feedback').hidden = !$('#site-search').value.trim();
+});
+document.addEventListener('click', event => {
+  if (!event.target.closest('.site-search')) $('#site-search-feedback').hidden = true;
 });

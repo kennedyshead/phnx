@@ -33,14 +33,17 @@
     <div class="sidebar-bottom"><div class="winter-icon">❄</div><strong>An ember in the ice.</strong><p>Through the frost. Into the fire.<br>We rise together.</p><span class="version">RISING PHOENIX · V0.1</span></div>
   </aside>
   <div class="workspace">
-    <header class="topbar"><div class="breadcrumb">Rising Phoenix <span>/</span> <strong id="page-name">Overview</strong></div><div class="topbar-right"><div class="clock-pair"><div class="server-clock" role="group" aria-label="Server 268 time, UTC minus 2" title="Server #268 · fixed UTC−2 · based on your device clock"><span>SERVER #268 · UTC−2</span><time id="server-clock">--:--:--</time><span id="server-clock-date"></span></div><div class="server-clock local-clock" role="group" aria-label="Your local date and time" title="Your device’s local timezone"><span>LOCAL · <span id="local-clock-zone"></span></span><time id="local-clock">--:--:--</time><span id="local-clock-date"></span></div></div><span class="local-badge">GUILD HUB</span></div></header>
-    <main id="main" tabindex="-1">
+    <header class="topbar"><div class="breadcrumb">Rising Phoenix <span>/</span> <strong id="page-name">Overview</strong></div>
       <search class="site-search" aria-label="Search the guild hub">
-        <label for="site-search">Find something in the guild hub</label>
-        <input id="site-search" type="search" placeholder="Search events, schedules, rules and guides…" autocomplete="off" aria-describedby="site-search-status" aria-controls="site-search-results">
+        <label for="site-search">Search the guild hub</label>
+        <input id="site-search" type="search" placeholder="Search the hub…" autocomplete="off" aria-describedby="site-search-status" aria-controls="site-search-results">
+        <div id="site-search-feedback" hidden>
         <p id="site-search-status" class="small muted" role="status"></p>
         <ul id="site-search-results" hidden></ul>
+        </div>
       </search>
+      <div class="topbar-right"><div class="clock-pair"><div class="server-clock" role="group" aria-label="Server 268 time, UTC minus 2" title="Server #268 · fixed UTC−2 · based on your device clock"><span>SERVER #268 · UTC−2</span><time id="server-clock">--:--:--</time><span id="server-clock-date"></span></div><div class="server-clock local-clock" role="group" aria-label="Your local date and time" title="Your device’s local timezone"><span>LOCAL · <span id="local-clock-zone"></span></span><time id="local-clock">--:--:--</time><span id="local-clock-date"></span></div></div><span class="local-badge">GUILD HUB</span></div></header>
+    <main id="main" tabindex="-1">
       <div class="page-heading"><div><p class="eyebrow">RISING PHOENIX · PHNX · SERVER 268</p><h1 id="heading">From the frost, we rise.</h1><p id="subheading">One guild. One fire. A rising phoenix in a frozen world.</p></div><div class="date-display" id="today"></div></div>
       <div class="preview-note"><span>◈</span><p><strong>Welcome to the PHNX guild hub.</strong> Rules and schedules were updated on 3 November 2026 and are not a live game feed. Check Leadership’s latest bulletin for changes. Your personal checklist stays in this browser.</p></div>
       <section id="dashboard-view" class="view">
