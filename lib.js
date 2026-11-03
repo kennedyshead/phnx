@@ -74,6 +74,14 @@ export function calendarEvents(year, month) {
   return events.map(event => ({ ...event, datetime: event.time ? `${event.date}T${event.time}:00-02:00` : null })).sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || '') || a.title.localeCompare(b.title));
 }
 
+export function upcomingTimedEvents(now = new Date()) {
+  const airship = nextAirship(now);
+  const date = serverClock(airship).date;
+  const events = datedEvents.filter(event => event.time).map(event => ({ ...event, datetime: `${event.date}T${event.time}:00-02:00` }));
+  events.push({ date, type: 'airship', title: 'Guild Airship', time: serverClock(airship).time.slice(0, 5), datetime: airship.toISOString() });
+  return events.filter(event => new Date(event.datetime) >= now).sort((a, b) => new Date(a.datetime) - new Date(b.datetime)).slice(0, 3);
+}
+
 export const emberWars = {
   sections: [
     { title: 'Before the event', steps: ['Read the current event rules, objectives, stage, and participation requirements in-game.', 'Check guild announcements: are we attacking or defending, where are we meeting, and who is leading?', 'Prepare your strongest available combat team and check healing capacity and supplies. Avoid spending scarce resources without a plan.', 'Ask leadership whether you need to relocate; do not use a teleport blindly.', 'Confirm the start time in-game and aim to be online 10–15 minutes early.'] },
@@ -95,16 +103,67 @@ export const priorities = [
   { id: 'coal', title: 'Plan your coal reserves', detail: 'Check current supplies and coordinate gathering with the guild.', tag: 'RESOURCES', icon: '⬡' },
   { id: 'rally', title: 'Get rally-ready', detail: 'Check officer instructions and prepare your available team.', tag: 'GUILD PLAY', icon: '⚑' },
 ];
+
+// Monday Day 1 follows the 2 November bulletin; Tuesday Day 2 is shown in
+// IMG_0366/0367. This is a weekday preparation plan, not live Duel status.
+export const duelWeekdayPlan = {
+  1: { day: 1, theme: 'Complete Intel Quests', tasks: [
+    ['intel', 'Complete Intel Quests', 'Follow the active Intel task list and check your Duel Points.'],
+    ['ap', 'Review your Day 1 AP and gathering tasks', 'The guild bulletin also calls for spending AP and harvesting World Map resources. Check targets in-game.'],
+    ['mount', 'Review the Day 1 mount-feed plan', 'Check the Guild Duel guide and current costs before using mount feed, shoes or resets.'],
+  ] },
+  2: { day: 2, theme: 'Build Up Your Camp', tasks: [
+    ['speedups', 'Use Building Speedups', 'Shown task: use 1 minute of Building Speedups for 108 Duel Points. Check the live task list and your resource plan before spending.'],
+    ['power', 'Increase Building Power', 'Shown task: increase Building Power by 1 point for 9 Duel Points. Plan upgrades within your available resources.'],
+    ['ur-airship', 'Dispatch a UR Airship', 'Shown task: dispatch 1 UR Airship for 185,000 Duel Points. Check availability and requirements in-game; this is not the guild Airship departure.'],
+    ['treasure', 'Complete a Legendary Treasure Hunt Quest', 'Shown task: complete 1 Legendary Treasure Hunt Quest for 138,750 Duel Points. Check the active task requirements.'],
+    ['bean', 'Acquire Magic Beans', 'Shown task: acquire 1 Magic Bean for 555 Duel Points. No purchase or spending requirement is implied.'],
+  ] },
+  3: { day: 3, theme: 'Research Techs', tasks: [
+    ['research', 'Plan your Research Techs tasks', 'Open today’s Duel task list and plan research around its requirements. Check scoring and costs before using saved resources.'],
+  ] },
+  4: { day: 4, theme: 'Upgrade Palmon', tasks: [
+    ['palmon', 'Plan your Upgrade Palmon tasks', 'Check today’s Duel requirements before upgrading Palmon or spending saved materials.'],
+  ] },
+  5: { day: 5, theme: 'Prepare for Battle', tasks: [
+    ['battle', 'Check Prepare for Battle tasks', 'Follow the active Duel task list and Leadership’s preparation instructions. Specific scoring tasks have not been supplied.'],
+  ] },
+  6: { day: 6, theme: 'Defeat Enemies', tasks: [
+    ['enemies', 'Check Defeat Enemies objectives', 'The Day 6 theme is visible in the supplied schedule, but its task details are not. Check the active tasks and Leadership’s instructions before fighting.'],
+  ] },
+};
+
+export function prioritiesForDate(now = new Date()) {
+  const date = serverClock(now).date;
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  const plan = duelWeekdayPlan[weekday];
+  const daily = plan ? plan.tasks.map(([id, title, detail]) => ({ id: `duel-${plan.day}-${id}`, title, detail, tag: `DUEL · DAY ${plan.day}`, icon: '⚑', group: 'today' })) : [
+    { id: 'duel-check', title: 'Check today’s Guild Duel tasks', detail: 'Sunday’s theme is not confirmed here. Check the active theme and Leadership’s instructions in-game.', tag: 'GUILD DUEL', icon: '⚑', group: 'today' },
+  ];
+  if (weekday === 5) daily.push({ id: 'friday-shield', title: 'End the day by shielding', detail: 'Saturday is reset day. Check your shield duration and the reset time in-game so you stay covered; no reset hour is configured here.', tag: 'FRIDAY · SHIELD', icon: '⬡', group: 'today' });
+  const eventTasks = {
+    airship: ['Check today’s guild Airship departure', 'Confirm the departure in-game and prepare for your guild’s schedule.'],
+    'guild-hunt': ['Prepare for the confirmed Flappy hunt', 'Check Leadership’s rally instructions and be ready with your team.'],
+    'ember-wars': ['Prepare for Ember Wars', 'Check Leadership’s assignments and the in-game vote to signal likely participation.'],
+    'arctic-showdown': ['Check today’s Arctic Showdown stage', 'Confirm qualification and your assigned target in-game before attacking.'],
+    'sandstorm-scuffle': ['Check Sandstorm Scuffle registration and assignments', 'This is a recorded event-window date, not a confirmed battle time. Check voting, registration and squad instructions in-game.'],
+  };
+  const events = calendarEvents(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1).filter(event => event.date === date).map(event => ({
+    id: `event-${event.type}-${date}`, title: eventTasks[event.type][0], detail: `${event.title}. ${eventTasks[event.type][1]}`, tag: 'GUILD EVENT', icon: '◈', group: 'today', time: event.time, datetime: event.datetime,
+  }));
+  return [...daily, ...events, ...priorities.map(item => ({ ...item, group: 'everyday' }))];
+}
 export const guides = [
   { id: 'cold', category: 'SURVIVAL', title: 'Keep the cold outside.', description: 'A simple starting point for generator checks and blizzard preparation.', icon: '❄', steps: ['Check the current weather and warnings in-game.', 'Review generator fuel and your current heating needs.', 'Check cold resistance on the relevant in-game screens.', 'Ask an officer about priorities before spending scarce supplies.'] },
   { id: 'coal', category: 'RESOURCES', title: 'Make every coal count.', description: 'Plan supplies together. Keep your guild ready for what comes next.', icon: '⬡', steps: ['Check your current coal reserves and consumption in-game.', 'Confirm gathering and mine objectives with an officer.', 'Review brick-kiln costs before committing resources.', 'Recheck supplies after weather or building changes.'] },
   { id: 'rally', category: 'GUILD PLAY', title: 'Stronger, together.', description: 'A quick rally-prep checklist for showing up ready to help.', icon: '⚑', steps: ['Confirm the event time and organizer in your guild channel.', 'Read the assigned objective and role.', 'Check your team and available resources in-game.', 'Let the organizer know if your availability changes.'] },
 ];
-export function loadState(storage) {
+export function loadState(storage, now = new Date()) {
   try {
     const data = JSON.parse(storage.getItem('phnx-v1') || '{}');
+    const validIds = new Set(prioritiesForDate(now).map(item => item.id));
     return {
-      completed: Array.isArray(data.completed) ? [...new Set(data.completed.filter(id => priorities.some(p => p.id === id)))] : [],
+      completed: Array.isArray(data.completed) ? [...new Set(data.completed.filter(id => validIds.has(id)))] : [],
       day: typeof data.day === 'string' ? data.day : '',
     };
   } catch { return { completed: [], day: '' }; }

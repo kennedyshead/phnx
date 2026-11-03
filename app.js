@@ -1,4 +1,4 @@
-import { priorities, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
+import { prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
 
 const $ = selector => document.querySelector(selector);
 // Decorative artwork: the adjacent headings already identify each event.
@@ -60,8 +60,10 @@ document.querySelectorAll('.results-table tbody tr').forEach(row => {
   if (result.textContent === 'Win') result.prepend(resultImage('win', 'result-win-art', 86, 34));
 });
 try { storage = window.localStorage; } catch { /* Private browser settings can disable storage. */ }
-const state = loadState(storage);
-const day = new Date().toLocaleDateString('en-CA');
+const checklistNow = new Date();
+const state = loadState(storage, checklistNow);
+let activePriorities = prioritiesForDate(checklistNow);
+const day = serverClock(checklistNow).date;
 if (state.day !== day) { state.completed = []; state.day = day; }
 const dateFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 $('#today').textContent = dateFormat.format(new Date());
@@ -71,6 +73,43 @@ const localDateFormat = new Intl.DateTimeFormat(undefined, { year: 'numeric', mo
 $('#local-clock-zone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const departureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'short' });
 const serverDepartureFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Etc/GMT+2' });
+function updateEventCountdown(node, now) {
+  const start = new Date(node.dataset.eventCountdown);
+  node.textContent = start < now ? 'Scheduled start passed · check in-game' : `Scheduled start in ${countdownUntil(start, now)} (hours : minutes : seconds)`;
+}
+function eventCountdownNode(datetime) {
+  const node = document.createElement('span');
+  node.className = 'event-countdown';
+  node.dataset.eventCountdown = datetime;
+  updateEventCountdown(node, new Date());
+  return node;
+}
+document.querySelectorAll('[data-local-time]').forEach(node => node.after(eventCountdownNode(node.dataset.localTime)));
+const upcomingSection = document.createElement('section');
+upcomingSection.className = 'upcoming-events';
+upcomingSection.setAttribute('aria-labelledby', 'upcoming-title');
+$('.hero').after(upcomingSection);
+let upcomingKey = '';
+function renderUpcomingEvents(now) {
+  const events = upcomingTimedEvents(now);
+  const key = events.map(event => event.datetime).join('|');
+  if (key === upcomingKey) return;
+  upcomingKey = key;
+  const heading = document.createElement('h2'); heading.id = 'upcoming-title'; heading.textContent = 'Next up · guild countdowns';
+  const cards = document.createElement('div'); cards.className = 'upcoming-grid';
+  for (const event of events) {
+    const card = document.createElement('article'); card.className = 'upcoming-card';
+    const title = document.createElement('h3');
+    const link = document.createElement('a'); link.href = event.type === 'airship' || event.type === 'guild-hunt' ? '#calendar' : `#${event.type}`; link.textContent = event.title;
+    title.append(link);
+    const countdown = eventCountdownNode(event.datetime);
+    const server = document.createElement('p'); server.textContent = `${serverDepartureFormat.format(new Date(event.datetime))} server (UTC−2)`;
+    const local = document.createElement('p'); local.textContent = `${departureFormat.format(new Date(event.datetime))} local`;
+    card.append(title, countdown, server, local); cards.append(card);
+  }
+  const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Confirmed times only. Date-only events remain in the calendar. Countdown hours can exceed 24; confirm changes in-game.';
+  upcomingSection.replaceChildren(heading, cards, note);
+}
 function updateLocalTimes(now) {
   document.querySelectorAll('[data-local-time]').forEach(node => {
     node.textContent = ` · ${departureFormat.format(new Date(node.dataset.localTime))} local`;
@@ -137,7 +176,7 @@ function renderCalendar() {
         const time = document.createElement('time');
         time.dateTime = event.datetime;
         time.textContent = `${event.time} server · ${departureFormat.format(new Date(event.datetime))} local`;
-        details.append(time);
+        details.append(time, eventCountdownNode(event.datetime));
       } else details.textContent = 'Time not supplied';
       item.append(image, title, details);
       list.append(item);
@@ -191,7 +230,17 @@ function updateClocks() {
   $('#today').textContent = dateFormat.format(now);
   updateAirship(now);
   updateLocalTimes(now);
+  renderUpcomingEvents(now);
+  if (state.day !== clock.date) {
+    state.day = clock.date;
+    state.completed = [];
+    activePriorities = prioritiesForDate(now);
+    save();
+    renderChecklist();
+    renderProgress();
+  }
   if (clock.date !== calendarDay) { calendarDay = clock.date; renderCalendar(); }
+  document.querySelectorAll('[data-event-countdown]').forEach(node => updateEventCountdown(node, now));
 }
 updateClocks();
 setInterval(updateClocks, 1000);
@@ -211,11 +260,53 @@ function save() {
 }
 function renderProgress() {
   const count = state.completed.length;
-  $('#priority-count').textContent = `${count} / ${priorities.length}`;
-  $('#progress-fill').style.width = `${count / priorities.length * 100}%`;
-  $('#progress-text').textContent = count === priorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
+  $('#priority-count').textContent = `${count} / ${activePriorities.length}`;
+  $('#progress-fill').style.width = `${count / activePriorities.length * 100}%`;
+  $('#progress-text').textContent = count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
 }
-$('#priorities').innerHTML = priorities.map(p => `<label class="priority"><span class="priority-icon">${p.icon}</span><span class="priority-copy"><strong>${p.title}</strong><span>${p.detail}</span></span><input type="checkbox" value="${p.id}" ${state.completed.includes(p.id) ? 'checked' : ''}><span class="checkmark" aria-hidden="true"></span></label>`).join('');
+function renderChecklist() {
+  const weekday = new Date(`${state.day}T12:00:00Z`).getUTCDay();
+  const plan = duelWeekdayPlan[weekday];
+  const summary = document.createElement('p');
+  summary.id = 'priority-day';
+  summary.className = 'small muted';
+  const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long', timeZone: 'UTC' }).format(new Date(`${state.day}T12:00:00Z`));
+  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Resets at server midnight.`;
+  const nodes = [summary];
+  for (const [group, title] of [['today', 'For today'], ['everyday', 'Everyday essentials']]) {
+    const heading = document.createElement('h3');
+    heading.className = 'priority-group-title';
+    heading.textContent = title;
+    nodes.push(heading);
+    for (const item of activePriorities.filter(item => item.group === group)) {
+      const label = document.createElement('label');
+      label.className = 'priority';
+      const icon = document.createElement('span');
+      icon.className = 'priority-icon'; icon.textContent = item.icon; icon.setAttribute('aria-hidden', 'true');
+      const copy = document.createElement('span'); copy.className = 'priority-copy';
+      const title = document.createElement('strong'); title.textContent = item.title; title.id = `priority-title-${item.id}`;
+      const detail = document.createElement('span'); detail.textContent = item.detail; detail.id = `priority-detail-${item.id}`;
+      const tag = document.createElement('span'); tag.className = 'priority-tag'; tag.textContent = item.tag;
+      copy.append(title, tag, detail);
+      if (item.datetime) {
+        const time = document.createElement('time');
+        time.dateTime = item.datetime;
+        time.textContent = `${item.time} server · ${departureFormat.format(new Date(item.datetime))} local`;
+        copy.append(time, eventCountdownNode(item.datetime));
+      } else if (item.group === 'today' && item.id.startsWith('event-')) {
+        const unknown = document.createElement('span'); unknown.textContent = 'Start time not supplied; check in-game.'; copy.append(unknown);
+      }
+      const input = document.createElement('input'); input.type = 'checkbox'; input.value = item.id; input.checked = state.completed.includes(item.id);
+      input.setAttribute('aria-labelledby', title.id);
+      input.setAttribute('aria-describedby', detail.id);
+      const checkmark = document.createElement('span'); checkmark.className = 'checkmark'; checkmark.setAttribute('aria-hidden', 'true');
+      label.append(icon, copy, input, checkmark);
+      nodes.push(label);
+    }
+  }
+  $('#priorities').replaceChildren(...nodes);
+}
+renderChecklist();
 $('#priorities').addEventListener('change', event => {
   const { value, checked } = event.target;
   state.completed = checked ? [...new Set([...state.completed, value])] : state.completed.filter(id => id !== value);
