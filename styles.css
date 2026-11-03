@@ -105,6 +105,7 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 .event-landing-timer p:last-child{margin-bottom:0}.landing-countdown-value{display:block;font-size:clamp(22px,4vw,34px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .nav-submenu{display:grid;gap:5px;margin-left:24px;padding-left:10px;border-left:2px solid var(--event-border)}
 .nav-submenu a{font-size:11px;padding:10px}
+#checklist-finished>h3{padding:18px 0;margin:0;font-size:14px;font-weight:700}
 @media(max-width:760px){.nav-submenu{display:flex;flex-shrink:0;gap:4px;margin-left:0;padding-left:4px}.nav-submenu a{flex:none}}
 .beginner-card .eyebrow{color:var(--event-accent);font-size:10px;margin:0 0 12px}
 .beginner-card h4{font-size:14px;line-height:1.5;margin:20px 0 8px}

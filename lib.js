@@ -253,6 +253,26 @@ export const guides = [
   { id: 'coal', category: 'RESOURCES', title: 'Make every coal count.', description: 'Plan supplies together. Keep your guild ready for what comes next.', icon: '⬡', steps: ['Check your current coal reserves and consumption in-game.', 'Confirm gathering and mine objectives with an officer.', 'Review brick-kiln costs before committing resources.', 'Recheck supplies after weather or building changes.'] },
   { id: 'rally', category: 'GUILD PLAY', title: 'Stronger, together.', description: 'A quick rally-prep checklist for showing up ready to help.', icon: '⚑', steps: ['Confirm the event time and organizer in your guild channel.', 'Read the assigned objective and role.', 'Check your team and available resources in-game.', 'Let the organizer know if your availability changes.'] },
 ];
+
+// S1 is already underway; no start date or future season is invented.
+// Add only reviewed, season-specific guidance and a confirmed zoned start instant.
+export const seasons = [
+  { id: 's1', name: 'S1: Dawn of the Ice Age', startsAt: null, guideIds: ['cold', 'coal'] },
+];
+
+export function preparationSeason(now = new Date(), catalog = seasons) {
+  return catalog.filter(season => {
+    if (typeof season.startsAt !== 'string' || !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(season.startsAt)) return false;
+    const remaining = Date.parse(season.startsAt) - now.getTime();
+    return Number.isFinite(remaining) && remaining > 0 && remaining <= 7 * 86_400_000;
+  }).sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))[0] || null;
+}
+
+export function availableGuides(now = new Date(), catalog = seasons) {
+  const active = preparationSeason(now, catalog);
+  const seasonal = new Set(catalog.flatMap(season => season.guideIds));
+  return guides.filter(guide => !seasonal.has(guide.id) || active?.guideIds.includes(guide.id));
+}
 export function loadState(storage, now = new Date()) {
   try {
     const data = JSON.parse(storage.getItem('phnx-v1') || '{}');

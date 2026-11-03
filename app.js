@@ -1,6 +1,7 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer } from './lib.js?v=320d04b75be5c15a976a';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides } from './lib.js?v=47dad1769132c8a302fd';
 
 const $ = selector => document.querySelector(selector);
+let seasonKey = null;
 for (const [type, event] of Object.entries(eventPages)) {
   let parent = $(`nav a[data-page="${type}"]`);
   if (!parent) {
@@ -234,6 +235,19 @@ for (const [weekday, plan] of Object.entries(duelWeekdayPlan)) {
   }
   $('#duel-days').append(card);
 }
+// Retire the old disclosure markup without copying its content or losing IDs.
+// Every guide panel is now an ordinary visible section with a real heading.
+for (const disclosure of document.querySelectorAll('details')) {
+  const panel = document.createElement('section');
+  for (const attribute of disclosure.attributes) if (attribute.name !== 'open') panel.setAttribute(attribute.name, attribute.value);
+  const summary = disclosure.querySelector(':scope > summary');
+  if (summary) {
+    const heading = document.createElement('h3');
+    if (summary.id) heading.id = summary.id;
+    heading.append(...summary.childNodes); summary.replaceWith(heading);
+  }
+  panel.append(...disclosure.childNodes); disclosure.replaceWith(panel);
+}
 let beginnerKey = null;
 function renderBeginnerEvents(now) {
   const events = upcomingBeginnerEvents(now);
@@ -382,6 +396,7 @@ function updateClocks() {
   updateLocalTimes(now);
   renderUpcomingEvents(now);
   renderLandingTimers(now);
+  renderSeasonGuidance(now);
   renderBeginnerEvents(now);
   if (state.day !== clock.date) {
     state.day = clock.date;
@@ -417,12 +432,10 @@ function renderProgress(now = new Date()) {
   const failed = activePriorities.filter(item => checklistStatus(item, state.completed, now) === 'failed').length;
   $('#priority-count').textContent = `${count} / ${activePriorities.length}`;
   $('#progress-fill').style.width = `${count / activePriorities.length * 100}%`;
-  $('#progress-text').textContent = failed ? `${count} done · ${failed} failed · ${activePriorities.length - count - failed} remaining. Expand “Done and failed” to review or correct an item.` : count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
+  $('#progress-text').textContent = failed ? `${count} done · ${failed} failed · ${activePriorities.length - count - failed} remaining. See “Done and failed” below to review or correct an item.` : count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
 }
 function renderChecklist(now = new Date()) {
-  const wasOpen = Boolean($('#checklist-finished')?.open);
   const focusedValue = $('#priorities input:focus')?.value;
-  const summaryFocused = document.activeElement === $('#checklist-finished summary');
   const statuses = new Map(activePriorities.map(item => [item.id, checklistStatus(item, state.completed, now)]));
   checklistSignature = [...statuses.values()].join('|');
   const weekday = new Date(`${state.day}T12:00:00Z`).getUTCDay();
@@ -431,12 +444,13 @@ function renderChecklist(now = new Date()) {
   summary.id = 'priority-day';
   summary.className = 'small muted';
   const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long', timeZone: 'UTC' }).format(new Date(`${state.day}T12:00:00Z`));
-  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Unchecked timed items fail after their scheduled start; this is checklist status, not an in-game result. Expand “Done and failed” to correct an item. Resets at server midnight.`;
+  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Unchecked timed items fail after their scheduled start; this is checklist status, not an in-game result. Done and failed items remain below for review. Resets at server midnight.`;
   const nodes = [summary];
   const done = activePriorities.filter(item => statuses.get(item.id) === 'done');
   const failed = activePriorities.filter(item => statuses.get(item.id) === 'failed');
-  const finished = document.createElement('details'); finished.id = 'checklist-finished'; finished.open = wasOpen;
-  const finishedSummary = document.createElement('summary');
+  const finished = document.createElement('section'); finished.id = 'checklist-finished';
+  const finishedSummary = document.createElement('h3'); finishedSummary.id = 'checklist-finished-title';
+  finished.setAttribute('aria-labelledby', finishedSummary.id);
   finishedSummary.textContent = `Done and failed · ${done.length} done · ${failed.length} failed`;
   finished.append(finishedSummary);
   for (const [group, title, items] of [
@@ -488,9 +502,8 @@ function renderChecklist(now = new Date()) {
   $('#priorities').replaceChildren(...nodes);
   if (focusedValue) {
     const moved = [...$('#priorities').querySelectorAll('input')].find(input => input.value === focusedValue);
-    if (moved?.closest('details') && !finished.open) finishedSummary.focus();
-    else moved?.focus();
-  } else if (summaryFocused && finished.isConnected) finishedSummary.focus();
+    moved?.focus();
+  }
 }
 renderChecklist();
 $('#priorities').addEventListener('change', event => {
@@ -502,6 +515,25 @@ renderProgress();
 
 function guideCards(items) {
   return items.map(g => `<button class="guide-card ${g.id}" data-guide="${g.id}"><span class="guide-category">${g.category} <span>↗</span></span><span class="guide-art" aria-hidden="true">${g.icon}</span><strong>${g.title}</strong><span class="guide-description">${g.description}</span><span class="guide-bottom">4-STEP CHECKLIST <span>UNVERIFIED</span></span></button>`).join('');
+}
+function renderSeasonGuidance(now) {
+  const season = preparationSeason(now);
+  const key = JSON.stringify(season);
+  if (seasonKey === key) return;
+  seasonKey = key;
+  document.querySelectorAll('[data-season-link]').forEach(link => { link.hidden = !season; });
+  $('#season-preview').hidden = !season;
+  $('#season-guides').hidden = !season;
+  $('#season-unavailable').hidden = Boolean(season);
+  $('#season-context').textContent = season ? `${season.name} · starts ${serverDepartureFormat.format(new Date(season.startsAt))} server / ${departureFormat.format(new Date(season.startsAt))} local. Starter suggestions, not verified mechanics; check current in-game rules and costs.` : 'Season starter guidance appears during the seven days before a confirmed season start.';
+  $('#guide-search').value = '';
+  const items = season ? guides.filter(guide => season.guideIds.includes(guide.id)) : [];
+  $('#guide-list').innerHTML = guideCards(items);
+  $('#guide-preview').innerHTML = guideCards(items);
+  $('#no-guides').hidden = true;
+  const dialog = $('#guide-dialog');
+  if (dialog.open && !availableGuides(now).some(guide => guide.id === dialog.dataset.guideId)) dialog.close();
+  if ($('#site-search').value.trim()) $('#site-search').dispatchEvent(new Event('input'));
 }
 $('#ember-sections').replaceChildren(...emberWars.sections.map(section => {
   const article = document.createElement('article');
@@ -529,19 +561,20 @@ $('#ember-resources').replaceChildren(...emberWars.resources.map(resource => {
   item.append(link, source);
   return item;
 }));
-$('#guide-preview').innerHTML = guideCards(guides);
-$('#guide-list').innerHTML = guideCards(guides);
-$('#playbook-list').innerHTML = guideCards(guides.filter(g => g.id !== 'cold'));
+$('#playbook-list').innerHTML = guideCards(guides.filter(guide => !seasons.some(season => season.guideIds.includes(guide.id))));
 $('#guide-search').addEventListener('input', event => {
   const query = event.target.value.trim().toLowerCase();
-  const filtered = guides.filter(g => `${g.category} ${g.title} ${g.description} ${g.steps.join(' ')}`.toLowerCase().includes(query));
+  const season = preparationSeason();
+  const filtered = guides.filter(g => season?.guideIds.includes(g.id) && `${g.category} ${g.title} ${g.description} ${g.steps.join(' ')}`.toLowerCase().includes(query));
   $('#guide-list').innerHTML = guideCards(filtered);
   $('#no-guides').hidden = filtered.length > 0;
 });
 document.addEventListener('click', event => {
   const guideButton = event.target.closest('[data-guide]');
   if (guideButton) {
-    const guide = guides.find(g => g.id === guideButton.dataset.guide);
+    const guide = availableGuides().find(g => g.id === guideButton.dataset.guide);
+    if (!guide) return;
+    $('#guide-dialog').dataset.guideId = guide.id;
     $('#dialog-title').textContent = guide.title;
     $('#dialog-description').textContent = guide.description;
     $('#dialog-steps').replaceChildren(...guide.steps.map(step => { const li = document.createElement('li'); li.textContent = step; return li; }));
@@ -552,7 +585,7 @@ $('#close-dialog').onclick = $('#done-dialog').onclick = () => $('#guide-dialog'
 const pages = {
   dashboard: ['Overview', 'From the frost, we rise.', 'One guild. One fire. A rising phoenix in a frozen world.'],
   'new-to-game': ['New to the game', 'A strong start, together.', 'Your daily checklist, everyday essentials, and starter guides for life with PHNX.'],
-  guides: ['Survival guides', 'Knowledge keeps us warm.', 'Practical starter checklists for the road ahead.'],
+  seasons: ['Seasons', 'Ready for a new chapter.', 'Starter guidance for the seven days before a confirmed season start.'],
   calendar: ['Guild calendar', 'Better, when we’re together.', 'The guild schedule, with your next Airship departure in server and local time.'],
   playbooks: ['Guild playbooks', 'One guild. One direction.', 'Simple preparation for coordinated guild play.'],
   'guild-duel': ['Guild Duel', 'PHNX, week after week.', 'A home for future Duel results and the archived matchup snapshot.'],
@@ -571,7 +604,8 @@ for (const [type, event] of Object.entries(eventPages)) {
   pages[event.officers] ||= [`${event.name} · Officers & callers`, 'Lead together.', 'Organizer coordination and caller guidance.'];
 }
 function navigate() {
-  const page = Object.hasOwn(pages, location.hash.slice(1)) ? location.hash.slice(1) : 'dashboard';
+  const requested = location.hash.slice(1) === 'guides' ? 'seasons' : location.hash.slice(1);
+  const page = Object.hasOwn(pages, requested) ? requested : 'dashboard';
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.id !== `${page}-view`; });
   document.querySelectorAll('[data-page]').forEach(link => {
     if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
@@ -594,12 +628,12 @@ navigate();
 // Read on demand so calendar/checklist results reflect the currently rendered day.
 $('#site-search').addEventListener('input', event => {
   const query = event.target.value;
-  const entries = Object.entries(pages).map(([id, [title, heading, description]]) => {
+  const entries = Object.entries(pages).filter(([id]) => id !== 'seasons' || preparationSeason()).map(([id, [title, heading, description]]) => {
     const content = $(`#${id}-view`).cloneNode(true);
     content.querySelectorAll('.event-countdown, .event-landing-timer, .airship-countdown, .upcoming-events, [data-guide], input, select, button').forEach(node => node.remove());
     return { id, title, text: `${heading} ${description} ${content.textContent}`.replace(/\s+/g, ' ').trim() };
   });
-  entries.push(...guides.map(guide => ({ id: guide.id, title: guide.title, text: `${guide.category} ${guide.description} ${guide.steps.join(' ')}`, guide: true })));
+  entries.push(...availableGuides().map(guide => ({ id: guide.id, title: guide.title, text: `${guide.category} ${guide.description} ${guide.steps.join(' ')}`, guide: true })));
   const matches = searchEntries(entries, query);
   $('#site-search-feedback').hidden = !query.trim();
   const results = $('#site-search-results');
