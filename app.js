@@ -1,4 +1,4 @@
-import { prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime } from './lib.js';
 
 const $ = selector => document.querySelector(selector);
 // Decorative artwork: the adjacent headings already identify each event.
@@ -63,6 +63,7 @@ try { storage = window.localStorage; } catch { /* Private browser settings can d
 const checklistNow = new Date();
 const state = loadState(storage, checklistNow);
 let activePriorities = prioritiesForDate(checklistNow);
+let checklistSignature = '';
 const day = serverClock(checklistNow).date;
 if (state.day !== day) { state.completed = []; state.day = day; }
 const dateFormat = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -260,6 +261,8 @@ function updateClocks() {
     renderProgress();
   }
   if (clock.date !== calendarDay) { calendarDay = clock.date; renderCalendar(); }
+  const signature = activePriorities.map(item => checklistStatus(item, state.completed, now)).join('|');
+  if (signature !== checklistSignature) { renderChecklist(now); renderProgress(now); }
   document.querySelectorAll('[data-event-countdown]').forEach(node => updateEventCountdown(node, now));
 }
 updateClocks();
@@ -278,29 +281,47 @@ function save() {
   try { storage.setItem('phnx-v1', JSON.stringify(state)); }
   catch { toast('Browser storage is unavailable. Changes will last for this visit only.'); }
 }
-function renderProgress() {
+function renderProgress(now = new Date()) {
   const count = state.completed.length;
+  const failed = activePriorities.filter(item => checklistStatus(item, state.completed, now) === 'failed').length;
   $('#priority-count').textContent = `${count} / ${activePriorities.length}`;
   $('#progress-fill').style.width = `${count / activePriorities.length * 100}%`;
-  $('#progress-text').textContent = count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
+  $('#progress-text').textContent = failed ? `${count} done · ${failed} failed · ${activePriorities.length - count - failed} remaining. Expand “Done and failed” to review or correct an item.` : count === activePriorities.length ? 'All checked off. Looking out for the guild starts with you.' : 'Small steps make a big difference.';
 }
-function renderChecklist() {
+function renderChecklist(now = new Date()) {
+  const wasOpen = Boolean($('#checklist-finished')?.open);
+  const focusedValue = $('#priorities input:focus')?.value;
+  const summaryFocused = document.activeElement === $('#checklist-finished summary');
+  const statuses = new Map(activePriorities.map(item => [item.id, checklistStatus(item, state.completed, now)]));
+  checklistSignature = [...statuses.values()].join('|');
   const weekday = new Date(`${state.day}T12:00:00Z`).getUTCDay();
   const plan = duelWeekdayPlan[weekday];
   const summary = document.createElement('p');
   summary.id = 'priority-day';
   summary.className = 'small muted';
   const weekdayName = new Intl.DateTimeFormat(undefined, { weekday: 'long', timeZone: 'UTC' }).format(new Date(`${state.day}T12:00:00Z`));
-  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Resets at server midnight.`;
+  summary.textContent = `${weekdayName} · ${state.day} server date${plan ? ` · Duel Day ${plan.day}: ${plan.theme}` : ''}. Weekday preparation plan, not live game status. Confirm the active Duel theme before spending. Unchecked timed items fail after their scheduled start; this is checklist status, not an in-game result. Expand “Done and failed” to correct an item. Resets at server midnight.`;
   const nodes = [summary];
-  for (const [group, title] of [['today', 'For today'], ['everyday', 'Everyday essentials']]) {
+  const done = activePriorities.filter(item => statuses.get(item.id) === 'done');
+  const failed = activePriorities.filter(item => statuses.get(item.id) === 'failed');
+  const finished = document.createElement('details'); finished.id = 'checklist-finished'; finished.open = wasOpen;
+  const finishedSummary = document.createElement('summary');
+  finishedSummary.textContent = `Done and failed · ${done.length} done · ${failed.length} failed`;
+  finished.append(finishedSummary);
+  for (const [group, title, items] of [
+    ['today', 'For today', activePriorities.filter(item => item.group === 'today' && statuses.get(item.id) === 'pending')],
+    ['everyday', 'Everyday essentials', activePriorities.filter(item => item.group === 'everyday' && statuses.get(item.id) === 'pending')],
+    ['finished', 'Done and failed', [...done, ...failed]],
+  ]) {
+    if (!items.length) continue;
     const heading = document.createElement('h3');
     heading.className = 'priority-group-title';
     heading.textContent = title;
-    nodes.push(heading);
-    for (const item of activePriorities.filter(item => item.group === group)) {
+    if (group !== 'finished') nodes.push(heading);
+    for (const item of items) {
       const label = document.createElement('label');
       label.className = 'priority';
+      label.dataset.status = statuses.get(item.id);
       const icon = document.createElement('span');
       icon.className = 'priority-icon'; icon.textContent = item.icon; icon.setAttribute('aria-hidden', 'true');
       const copy = document.createElement('span'); copy.className = 'priority-copy';
@@ -308,29 +329,42 @@ function renderChecklist() {
       const detail = document.createElement('span'); detail.textContent = item.detail; detail.id = `priority-detail-${item.id}`;
       const tag = document.createElement('span'); tag.className = 'priority-tag'; tag.textContent = item.tag;
       copy.append(title, tag, detail);
+      if (statuses.get(item.id) !== 'pending') {
+        const status = document.createElement('span'); status.className = 'checklist-status'; status.id = `priority-status-${item.id}`;
+        status.textContent = statuses.get(item.id) === 'done' ? 'Done' : 'Failed · scheduled start passed without being checked off';
+        copy.append(status);
+      }
       if (item.datetime) {
         const time = document.createElement('time');
         time.dateTime = item.datetime;
         time.textContent = `${item.time} server · ${departureFormat.format(new Date(item.datetime))} local`;
-        copy.append(time, eventCountdownNode(item.datetime));
+        copy.append(time);
+        if (statuses.get(item.id) === 'pending') copy.append(eventCountdownNode(item.datetime));
       } else if (item.group === 'today' && item.id.startsWith('event-')) {
         const unknown = document.createElement('span'); unknown.textContent = 'Start time not supplied; check in-game.'; copy.append(unknown);
       }
       const input = document.createElement('input'); input.type = 'checkbox'; input.value = item.id; input.checked = state.completed.includes(item.id);
       input.setAttribute('aria-labelledby', title.id);
-      input.setAttribute('aria-describedby', detail.id);
+      input.setAttribute('aria-describedby', `${detail.id}${statuses.get(item.id) === 'pending' ? '' : ` priority-status-${item.id}`}`);
       const checkmark = document.createElement('span'); checkmark.className = 'checkmark'; checkmark.setAttribute('aria-hidden', 'true');
       label.append(icon, copy, input, checkmark);
-      nodes.push(label);
+      if (group === 'finished') finished.append(label);
+      else nodes.push(label);
     }
   }
+  if (done.length + failed.length) nodes.push(finished);
   $('#priorities').replaceChildren(...nodes);
+  if (focusedValue) {
+    const moved = [...$('#priorities').querySelectorAll('input')].find(input => input.value === focusedValue);
+    if (moved?.closest('details') && !finished.open) finishedSummary.focus();
+    else moved?.focus();
+  } else if (summaryFocused && finished.isConnected) finishedSummary.focus();
 }
 renderChecklist();
 $('#priorities').addEventListener('change', event => {
   const { value, checked } = event.target;
   state.completed = checked ? [...new Set([...state.completed, value])] : state.completed.filter(id => id !== value);
-  save(); renderProgress();
+  save(); renderChecklist(); renderProgress();
 });
 renderProgress();
 
@@ -408,3 +442,46 @@ function navigate() {
 }
 window.addEventListener('hashchange', navigate);
 navigate();
+
+// Search only local published content, including views that are currently hidden.
+// Read on demand so calendar/checklist results reflect the currently rendered day.
+$('#site-search').addEventListener('input', event => {
+  const query = event.target.value;
+  const entries = Object.entries(pages).map(([id, [title, heading, description]]) => {
+    const content = $(`#${id}-view`).cloneNode(true);
+    content.querySelectorAll('.event-countdown, .airship-countdown, .upcoming-events, [data-guide], input, select, button').forEach(node => node.remove());
+    return { id, title, text: `${heading} ${description} ${content.textContent}`.replace(/\s+/g, ' ').trim() };
+  });
+  entries.push(...guides.map(guide => ({ id: guide.id, title: guide.title, text: `${guide.category} ${guide.description} ${guide.steps.join(' ')}`, guide: true })));
+  const matches = searchEntries(entries, query);
+  const results = $('#site-search-results');
+  results.replaceChildren(...matches.map(entry => {
+    const item = document.createElement('li');
+    const link = document.createElement(entry.guide ? 'button' : 'a');
+    link.textContent = entry.title;
+    if (entry.guide) {
+      link.type = 'button';
+      link.dataset.guide = entry.id;
+    } else {
+      link.href = `#${entry.id}`;
+      link.addEventListener('click', () => {
+        location.hash = entry.id;
+        navigate();
+        $('#main').focus();
+      });
+    }
+    const snippet = document.createElement('p');
+    snippet.textContent = `${entry.guide ? 'Guide' : 'Page'} · ${entry.snippet}`;
+    item.append(link, snippet);
+    return item;
+  }));
+  results.hidden = matches.length === 0;
+  $('#site-search-status').textContent = query.trim() ? (matches.length ? `${matches.length} results. Choose a page or guide below.` : 'No matches. Try an event name, “shield”, “mount” or “rules”.') : '';
+});
+$('#site-search').addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.target.value = '';
+    event.target.dispatchEvent(new Event('input'));
+  }
+});

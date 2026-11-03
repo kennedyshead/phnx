@@ -168,3 +168,22 @@ export function loadState(storage, now = new Date()) {
     };
   } catch { return { completed: [], day: '' }; }
 }
+// Token matching ignores case and accents; no query or content leaves the browser.
+export function searchEntries(entries, query) {
+  const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const tokens = normalize(query).trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return [];
+  return entries.flatMap(entry => {
+    const title = normalize(entry.title);
+    const text = normalize(entry.text);
+    if (!tokens.every(token => `${title} ${text}`.includes(token))) return [];
+    const position = Math.max(0, text.indexOf(tokens.find(token => text.includes(token)) || '') - 50);
+    return [{ ...entry, score: tokens.filter(token => title.includes(token)).length,
+      snippet: `${position ? '…' : ''}${entry.text.slice(position, position + 180)}${entry.text.length > position + 180 ? '…' : ''}` }];
+  }).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+}
+
+export function checklistStatus(item, completed, now = new Date()) {
+  if (completed.includes(item.id)) return 'done';
+  return item.datetime && new Date(item.datetime) < now ? 'failed' : 'pending';
+}
