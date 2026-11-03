@@ -206,21 +206,10 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 .theme-controls button{display:flex;align-items:center;gap:7px;min-height:40px;padding:8px 10px;border:1px solid var(--surface1);border-radius:8px;background:var(--base);color:var(--text);font-size:12px;white-space:nowrap}
 .theme-controls button:hover{background:var(--surface0)}
 .theme-controls button[aria-pressed="true"]{border-color:var(--blue);box-shadow:inset 0 -2px var(--blue)}
-.event-page-links{display:flex;flex-wrap:wrap;gap:12px;font-size:0!important}
-.event-page-links a{flex:1 1 240px;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--event-border);border-radius:10px;background:var(--base);text-decoration:none!important;color:var(--text)!important}
-.event-page-links a:hover{border-color:var(--event-accent);background:var(--mantle)}
-.event-page-links a>span{flex:1}
-.event-page-links strong{display:block;font-size:14px}
-.event-page-links small{display:block;font-size:12px;font-weight:400;color:var(--subtext);margin-top:4px}
-.event-page-links a>.ui-icon:first-child{width:26px;height:26px;color:var(--text)}
-.event-page-links a>.ui-icon:last-child{width:16px}
+.event-page-links,.card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .playbook-art{object-fit:cover;border-radius:9px;margin-bottom:12px}
-.external-link{display:grid;grid-template-columns:22px 1fr;gap:6px 10px;align-items:start;padding:12px;border:1px solid var(--surface1);border-radius:9px;background:var(--base);text-decoration:none!important}
-.external-link:hover{border-color:var(--blue);background:var(--mantle)}
-.external-title{text-decoration:underline;text-underline-offset:4px;font-size:14px!important;color:var(--mauve)!important}
-.external-destination{grid-column:2;color:var(--subtext);font-size:12px;line-height:1.6}
+.external-destination{display:block;color:var(--subtext);font-size:12px;line-height:1.6;margin-top:8px}
 .ember-resources{list-style:none;padding-left:0!important}
-.ember-resources .external-link .external-title{display:inline}
 :root .landing-updates .notice-tag{font-size:10px}
 :root .landing-updates .notice-panel>p{font-size:14px;line-height:1.7}
 :root .notice-author small{font-size:11px}
@@ -230,3 +219,24 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 :root .priority-copy strong{font-size:14px}
 @media(max-width:760px){.theme-controls{margin-left:auto}.theme-controls button{min-height:44px}.topbar .breadcrumb{flex:1 1 120px}.topbar .site-search{flex-basis:100%}:root nav .ui-icon{display:block;width:18px;height:18px}:root .hero-art:after{background:linear-gradient(90deg,#1e1e2ef5,#1e1e2eb3),linear-gradient(0deg,#1e1e2ecc,transparent 60%)}:root .hero-content{padding-bottom:64px}:root .hero-caption{font-size:8px}:root .hero p{font-size:13px}}
 @media(forced-colors:active){.theme-controls button[aria-pressed="true"],nav a[aria-current]{outline:2px solid Highlight}.ui-icon{forced-color-adjust:auto}}
+/* One action style everywhere; links retain anchor semantics and destinations. */
+:root .button,:root .guide-card .card-action{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  width:fit-content;max-width:100%;min-height:44px;padding:11px 16px;
+  border:1px solid var(--mauve);border-radius:8px;background:var(--mauve);
+  color:var(--button-text);font-family:inherit;font-size:14px;font-weight:650;
+  line-height:1.5;letter-spacing:0;text-align:left;text-decoration:none;
+  white-space:normal;overflow-wrap:anywhere;vertical-align:middle;
+}
+:root .button .action-label{color:inherit;font-size:inherit;line-height:inherit}
+:root .button .ui-icon,:root .card-action .ui-icon{width:18px;height:18px}
+:root .button:hover,:root .guide-card:hover .card-action{filter:brightness(.95)}
+:root .ember-intro>.button,:root .ember-panel>.button,:root .notice-panel>.button,:root .beginner-card>.button{margin-top:16px}
+:root .card-actions{margin-top:16px;margin-bottom:0}
+:root .landing-updates>section{display:flex;flex-direction:column;align-items:flex-start}
+:root .landing-updates>section>.button{margin-top:auto}
+:root .landing-updates .notice-author{margin-bottom:20px}
+:root .ember-callout{flex-direction:column;align-items:flex-start;gap:16px}
+:root .ember-callout>.button{margin-top:0}
+:root .guide-card .guide-bottom{margin-top:auto;padding-top:20px;border-top:0;align-items:center}
+:root .guide-card .guide-bottom>.card-action{font-size:14px;letter-spacing:0}

@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=417a9058921702d46400';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=5c6d63a8df8fdef7eb4e';
 
 const $ = selector => document.querySelector(selector);
 // CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
@@ -242,7 +242,7 @@ function renderUpcomingEvents(now) {
       description.append(time); group.append(term, description); times.append(group);
     }
     const source = document.createElement('p'); source.className = 'timing-source';
-    source.textContent = event.type === 'ember-wars' ? '13:30 announced · verified server time (UTC−2).' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
+    source.textContent = event.type === 'ember-wars' ? '13:30 announced · server time (UTC−2).' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
     card.append(title, countdown, times, source); cards.append(card);
   }
   const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Based on supplied schedules, not a live game feed. Check the latest in-game bulletin for changes. Events without a start time remain in the calendar.';
@@ -316,8 +316,9 @@ function renderBeginnerEvents(now) {
     const time = document.createElement('time'); time.dateTime = event.datetime;
     time.textContent = `${serverDepartureFormat.format(new Date(event.datetime))} server · ${departureFormat.format(new Date(event.datetime))} local`;
     timing.append('Next confirmed start: ', time);
-    if (event.type === 'ember-wars') timing.append(' · Verified server time (UTC−2).');
-    const link = document.createElement('a'); link.className = 'text-link'; link.href = eventBeginners[event.type].href; link.textContent = `Full ${eventBeginners[event.type].name} guide ↗`;
+    if (event.type === 'ember-wars') timing.append(' · Server time (UTC−2).');
+    const link = document.createElement('a'); link.href = eventBeginners[event.type].href; link.textContent = `Full ${eventBeginners[event.type].name} guide`;
+    styleActionLink(link);
     card.prepend(timing); card.append(link);
     return card;
   });
@@ -575,7 +576,7 @@ $('#priorities').addEventListener('change', event => {
 renderProgress();
 
 function guideCards(items) {
-  return items.map(g => `<button class="guide-card ${g.id}" data-guide="${g.id}"><span class="guide-category">${g.category} <span>↗</span></span><span class="guide-art" aria-hidden="true">${g.icon}</span><strong>${g.title}</strong><span class="guide-description">${g.description}</span><span class="guide-bottom">4-STEP CHECKLIST <span>UNVERIFIED</span></span></button>`).join('');
+  return items.map(g => `<button class="guide-card ${g.id}" data-guide="${g.id}"><span class="guide-category">${g.category} <span>→</span></span><span class="guide-art" aria-hidden="true">${g.icon}</span><strong>${g.title}</strong><span class="guide-description">${g.description}</span><span class="guide-bottom"><span class="card-action">Open checklist ${icon('arrow').outerHTML}</span><span>4-STEP CHECKLIST · UNVERIFIED</span></span></button>`).join('');
 }
 function renderSeasonGuidance(now) {
   const season = preparationSeason(now);
@@ -619,7 +620,7 @@ $('#ember-resources').replaceChildren(...emberWars.resources.map(resource => {
   link.rel = 'noopener noreferrer';
   link.textContent = `${resource.title} ↗`;
   const source = document.createElement('span');
-  source.textContent = `${resource.source} · opens in a new tab`;
+  source.textContent = resource.source;
   item.append(link, source);
   return item;
 }));
@@ -633,20 +634,41 @@ for (const link of document.querySelectorAll('a[href^="https://"]')) {
   const context = document.createElement('small'); context.className = 'external-destination';
   context.textContent = `${new URL(link.href).hostname.replace(/^www\./, '')} · opens in a new tab`;
   link.target = '_blank'; link.rel = 'noopener noreferrer';
-  link.replaceChildren(icon('external'), label, context);
+  link.replaceChildren(icon('external'), label);
+  link.after(context);
 }
 for (const [page, name] of Object.entries({ dashboard: 'home', 'new-to-game': 'checklist', seasons: 'book', calendar: 'calendar', playbooks: 'book', community: 'officers' })) {
   const marker = $(`nav a[data-page="${page}"] > span`);
   if (marker) marker.replaceWith(icon(name));
 }
-for (const [type, event] of Object.entries(eventPages)) {
-  for (const [page, symbol, description] of [[event.players, 'players', 'Preparation, rules & personal checklist'], [event.officers, 'officers', 'Coordination, assignments & calling']]) {
-    const link = $(`#${type}-view .event-page-links a[href="#${page}"]`);
-    const title = document.createElement('strong'); title.textContent = symbol === 'players' ? 'Player guide' : 'Officers & callers';
-    const caption = document.createElement('small'); caption.textContent = description;
-    const copy = document.createElement('span'); copy.append(title, caption);
-    link.replaceChildren(icon(symbol), copy, icon('arrow'));
+// One action-button presentation for standalone links inside panels. Real inline
+// prose links and links outside panels remain text; navigation remains an anchor.
+function styleActionLink(link) {
+  const external = link.classList.contains('external-link');
+  const label = document.createElement('span'); label.className = 'action-label';
+  label.textContent = link.textContent.replace(/\s*[↗→]\s*$/, '').trim();
+  link.classList.remove('text-link', 'light'); link.classList.add('button', 'primary');
+  link.replaceChildren(label, icon(external ? 'external' : 'arrow'));
+}
+const actionPanels = '.ember-intro,.ember-panel,.notice-panel,.ember-callout,.beginner-card';
+for (const link of document.querySelectorAll('.view a.text-link,.view a.button,.view a.external-link')) {
+  const panel = link.closest(actionPanels);
+  const paragraph = link.closest('p');
+  // A paragraph containing only links/separators is an action row, not prose.
+  const actionRow = paragraph && [...paragraph.childNodes].every(node => node.nodeType === Node.TEXT_NODE ? /^[\s·]*$/.test(node.textContent) : node.matches('a'));
+  if (!link.matches('.button') && (!panel || (paragraph && !actionRow))) continue;
+  styleActionLink(link);
+  if (actionRow) {
+    paragraph.classList.add('card-actions');
+    [...paragraph.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).forEach(node => node.remove());
   }
+}
+// Whole-card links/buttons keep a single interactive element. Their footer action
+// is a styled span, never an invalid nested button or second focus stop.
+for (const footer of document.querySelectorAll('a.guide-card .guide-bottom')) {
+  const action = document.createElement('span'); action.className = 'card-action';
+  action.append('Open playbook', icon('arrow'));
+  footer.replaceChildren(action);
 }
 for (const card of document.querySelectorAll('#playbooks-view a.guide-card[data-event]')) {
   const image = document.createElement('img'); image.className = 'playbook-art'; image.alt = '';
