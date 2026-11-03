@@ -68,3 +68,29 @@ nav a[data-event]{background:var(--event-bg);color:var(--event-accent)}nav a[dat
 .ember-grid>*,.guide-grid>*,.event-grid>*,.upcoming-grid>*,.landing-updates>*{min-width:0;flex:1 1 calc((100% - 40px)/3)}
 @media(max-width:1100px){.ember-grid>*,.guide-grid>*,.event-grid>*,.upcoming-grid>*{flex-basis:calc((100% - 20px)/2)}.landing-updates>*{flex-basis:100%}}
 @media(max-width:760px){.ember-grid>*,.guide-grid>*,.event-grid>*,.upcoming-grid>*{flex-basis:100%}}
+/* Three page templates: overview, library, detail. All share the same card grammar. */
+:root{--content-gap:20px;--panel-padding:24px;--panel-radius:12px}
+.view[data-layout]>.ember-intro{padding:var(--panel-padding);margin:0 0 24px;background:var(--event-bg,#fffefa);border:1px solid var(--event-border,var(--line));border-inline-start:4px solid var(--event-accent,var(--green));border-radius:var(--panel-radius)}
+.view[data-layout]>.ember-intro h2{font-family:inherit;font-size:26px;font-weight:700;line-height:1.3;margin:8px 0 12px}
+.view[data-layout]>.ember-intro p{font-size:14px;line-height:1.7;margin:12px 0}
+.view[data-layout]>.ember-intro .eyebrow{font-size:10px;line-height:1.5;margin:0;color:var(--event-accent,var(--green))}
+.view[data-layout]>.ember-intro>:last-child{margin-bottom:0}
+.view[data-layout]>section,.view[data-layout]>details{margin-bottom:24px}
+.view[data-layout] .section-heading{margin:24px 0 16px;gap:16px}
+.view[data-layout] .section-heading h2{font-size:19px;line-height:1.4;margin:0}
+.ember-grid,.guide-grid{gap:var(--content-gap)}
+.ember-panel,.guide-card{padding:var(--panel-padding);border-radius:var(--panel-radius)}
+.guide-card,.guide-card.coal,.guide-card.rally{background:#fffefa;border-color:var(--line);min-height:200px}
+.guide-card[data-event]{background:var(--event-bg);border-color:var(--event-border);border-inline-start:4px solid var(--event-accent)}
+.guide-card>strong{font-family:inherit;font-size:19px;font-weight:700;letter-spacing:0;line-height:1.4;margin:14px 0 0;padding-right:34px}
+.guide-card .guide-category{font-size:10px;line-height:1.5;color:var(--event-accent,var(--green));font-weight:700}
+.guide-card .guide-art{font-size:28px;top:58px;right:24px;opacity:.8}
+.guide-card .guide-description{font-size:14px;line-height:1.7;color:#52616b;max-width:none;margin:12px 0 0;flex-grow:1}
+.guide-card .guide-bottom{font-size:10px;line-height:1.5;letter-spacing:.6px;color:#52616b;margin-top:20px;padding-top:12px;gap:12px;flex-wrap:wrap}
+.guide-card .guide-bottom>span{font-size:10px;letter-spacing:.3px}
+.view[data-layout] .ember-panel h2,.view[data-layout] .ember-panel h3{font-size:19px;line-height:1.4}
+.view[data-layout] .ember-panel :is(ul,ol){padding-left:22px}
+.view[data-layout] .ember-panel li{font-size:14px;line-height:1.7}
+.view[data-layout] .text-link{font-size:13px;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+#new-to-game-view .priorities-panel{max-width:none}
+@media(max-width:760px){:root{--panel-padding:20px}.view[data-layout]>.ember-intro h2{font-size:23px}.guide-card .guide-art{right:20px}.guide-card>strong{font-size:19px}}
