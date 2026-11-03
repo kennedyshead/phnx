@@ -485,7 +485,7 @@ const pages = {
   'guild-duel': ['Guild Duel', 'Prepare today. Score together.', 'PHNX Day 1 missions, guild reminders, and the reported mount-feed technique.'],
   'ember-wars': ['Ember Wars', 'One guild. One fire.', 'A beginner’s guide to preparing, coordinating, and helping PHNX.'],
   'arctic-showdown': ['Arctic Showdown', 'Every attack is a team decision.', 'PHNX target guidance, a preparation checklist, and resources for Arctic Showdown.'],
-  'sandstorm-scuffle': ['Sandstorm Scuffle', 'Rise through the sandstorm.', 'The confirmed event window, signup information, and recorded PHNX results.'],
+  'sandstorm-scuffle': ['Sandstorm Scuffle', 'Rise through the sandstorm.', 'Signup, structures, scoring, squad roles, healing, rewards and recorded PHNX results.'],
   community: ['Community guidelines', 'Respect. Show up. Rise together.', 'PHNX guild expectations, activity rules, accountability, and server #268 policy.'],
 };
 function navigate() {

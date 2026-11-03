@@ -116,9 +116,9 @@ export const eventBeginners = {
   },
   'sandstorm-scuffle': {
     name: 'Sandstorm Scuffle', href: '#sandstorm-scuffle', title: 'Confirm your squad and battle time',
-    tips: ['Check in-game registration and voting; the supplied event notice says signup unlocks when votes reach 10.', 'Ask which Skirmish Squad, A or B, you should join and confirm that you can attend its assigned time.', 'Review the current objectives and participation requirements before preparing your team.'],
-    rules: ['Choose your squad in coordination with Leadership and follow its current calls. Voting and signup happen in-game, not on this website.'],
-    caution: 'The recorded event window is not a confirmed battle start. Historical results do not establish upcoming battle times.',
+    tips: ['Open Events > Sandstorm Scuffle and vote for every slot you can attend; signup unlocks when votes reach 10.', 'Confirm your one team (Skirmish Squad A or B), assigned time and caller with Leadership; be online 5 minutes early and report absences early.', 'Send only PvP-ready squads. A quiet garrison is doing its job: holding structures scores team and occupation points.', 'Use Sandstorm-only healing speedups first. Armigos heal free on exit, but regular speedups spent during the match are not refunded.'],
+    rules: ['Follow your caller, keep structures garrisoned and arrange backfill before moving. Low-power players are welcome in garrison roles.', 'Check the current personal reward track; 15,000 points is the reported historical target. Voting and signup happen in-game, not on this website.'],
+    caution: 'Friday slots (09:00, 18:00, 23:00 server) are available options, not confirmed PHNX bookings. Older 60-minute unlock times may differ in the 40-minute match; check in-game rules.',
   },
   'guild-duel': {
     name: 'Guild Duel', href: '#guild-duel', title: 'Check the active tasks before spending',
