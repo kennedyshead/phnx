@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=2f8938b11abff80a9403';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=417a9058921702d46400';
 
 const $ = selector => document.querySelector(selector);
 // CSS follows the OS even before JavaScript loads. Only an explicit choice is saved.
@@ -242,7 +242,7 @@ function renderUpcomingEvents(now) {
       description.append(time); group.append(term, description); times.append(group);
     }
     const source = document.createElement('p'); source.className = 'timing-source';
-    source.textContent = event.type === 'ember-wars' ? '13:30 announced · server timezone assumed; confirm in-game.' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
+    source.textContent = event.type === 'ember-wars' ? '13:30 announced · verified server time (UTC−2).' : event.type === 'guild-hunt' ? 'In-game schedule · 3 November at 22:00 server.' : 'Dannie’s 2 November guild bulletin.';
     card.append(title, countdown, times, source); cards.append(card);
   }
   const note = document.createElement('p'); note.className = 'small muted'; note.textContent = 'Based on supplied schedules, not a live game feed. Check the latest in-game bulletin for changes. Events without a start time remain in the calendar.';
@@ -316,7 +316,7 @@ function renderBeginnerEvents(now) {
     const time = document.createElement('time'); time.dateTime = event.datetime;
     time.textContent = `${serverDepartureFormat.format(new Date(event.datetime))} server · ${departureFormat.format(new Date(event.datetime))} local`;
     timing.append('Next confirmed start: ', time);
-    if (event.type === 'ember-wars') timing.append(' · Server timezone assumed (UTC−2); confirm in-game.');
+    if (event.type === 'ember-wars') timing.append(' · Verified server time (UTC−2).');
     const link = document.createElement('a'); link.className = 'text-link'; link.href = eventBeginners[event.type].href; link.textContent = `Full ${eventBeginners[event.type].name} guide ↗`;
     card.prepend(timing); card.append(link);
     return card;
