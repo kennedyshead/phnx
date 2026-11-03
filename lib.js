@@ -257,7 +257,7 @@ export const guides = [
 // S1 is already underway; no start date or future season is invented.
 // Add only reviewed, season-specific guidance and a confirmed zoned start instant.
 export const seasons = [
-  { id: 's1', name: 'S1: Dawn of the Ice Age', startsAt: null, guideIds: ['cold', 'coal'] },
+  { id: 's1', name: 'S1: Dawn of the Ice Age', current: true, startsAt: null, guideIds: ['cold', 'coal'] },
 ];
 
 export function preparationSeason(now = new Date(), catalog = seasons) {
@@ -272,6 +272,9 @@ export function availableGuides(now = new Date(), catalog = seasons) {
   const active = preparationSeason(now, catalog);
   const seasonal = new Set(catalog.flatMap(season => season.guideIds));
   return guides.filter(guide => !seasonal.has(guide.id) || active?.guideIds.includes(guide.id));
+}
+export function referenceSeason(now = new Date(), catalog = seasons) {
+  return preparationSeason(now, catalog) || catalog.find(season => season.current) || null;
 }
 export function loadState(storage, now = new Date()) {
   try {

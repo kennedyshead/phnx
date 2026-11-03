@@ -1,4 +1,4 @@
-import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides } from './lib.js?v=47dad1769132c8a302fd';
+import { checklistStatus, searchEntries, prioritiesForDate, duelWeekdayPlan, guides, loadState, emberWars, eventBeginners, upcomingBeginnerEvents, serverClock, nextAirship, countdownUntil, calendarEvents, upcomingTimedEvents, sandstormOpponents, serverTimeOnDate, nextWeeklyServerTime, eventPages, eventLandingTimer, seasons, preparationSeason, availableGuides, referenceSeason } from './lib.js?v=c77a10fe7acf0bb5259d';
 
 const $ = selector => document.querySelector(selector);
 let seasonKey = null;
@@ -518,21 +518,22 @@ function guideCards(items) {
 }
 function renderSeasonGuidance(now) {
   const season = preparationSeason(now);
-  const key = JSON.stringify(season);
+  const reference = referenceSeason(now);
+  const key = JSON.stringify({ season, reference });
   if (seasonKey === key) return;
   seasonKey = key;
   document.querySelectorAll('[data-season-link]').forEach(link => { link.hidden = !season; });
   $('#season-preview').hidden = !season;
-  $('#season-guides').hidden = !season;
-  $('#season-unavailable').hidden = Boolean(season);
-  $('#season-context').textContent = season ? `${season.name} · starts ${serverDepartureFormat.format(new Date(season.startsAt))} server / ${departureFormat.format(new Date(season.startsAt))} local. Starter suggestions, not verified mechanics; check current in-game rules and costs.` : 'Season starter guidance appears during the seven days before a confirmed season start.';
+  $('#season-guides').hidden = !reference;
+  $('#season-unavailable').hidden = Boolean(reference);
+  $('#season-context').textContent = season ? `${season.name} · starts ${serverDepartureFormat.format(new Date(season.startsAt))} server / ${departureFormat.format(new Date(season.startsAt))} local. Starter suggestions, not verified mechanics; check current in-game rules and costs.` : reference ? `${reference.name} · Current season reference. You can read these starter tips anytime; check current in-game rules and costs.` : 'Season starter guidance appears during the seven days before a confirmed season start.';
   $('#guide-search').value = '';
-  const items = season ? guides.filter(guide => season.guideIds.includes(guide.id)) : [];
+  const items = reference ? guides.filter(guide => reference.guideIds.includes(guide.id)) : [];
   $('#guide-list').innerHTML = guideCards(items);
-  $('#guide-preview').innerHTML = guideCards(items);
+  $('#guide-preview').innerHTML = season ? guideCards(items) : '';
   $('#no-guides').hidden = true;
   const dialog = $('#guide-dialog');
-  if (dialog.open && !availableGuides(now).some(guide => guide.id === dialog.dataset.guideId)) dialog.close();
+  if (dialog.open && !availableGuides(now).some(guide => guide.id === dialog.dataset.guideId) && !(!$('#seasons-view').hidden && reference?.guideIds.includes(dialog.dataset.guideId))) dialog.close();
   if ($('#site-search').value.trim()) $('#site-search').dispatchEvent(new Event('input'));
 }
 $('#ember-sections').replaceChildren(...emberWars.sections.map(section => {
@@ -564,7 +565,7 @@ $('#ember-resources').replaceChildren(...emberWars.resources.map(resource => {
 $('#playbook-list').innerHTML = guideCards(guides.filter(guide => !seasons.some(season => season.guideIds.includes(guide.id))));
 $('#guide-search').addEventListener('input', event => {
   const query = event.target.value.trim().toLowerCase();
-  const season = preparationSeason();
+  const season = referenceSeason();
   const filtered = guides.filter(g => season?.guideIds.includes(g.id) && `${g.category} ${g.title} ${g.description} ${g.steps.join(' ')}`.toLowerCase().includes(query));
   $('#guide-list').innerHTML = guideCards(filtered);
   $('#no-guides').hidden = filtered.length > 0;
@@ -572,7 +573,8 @@ $('#guide-search').addEventListener('input', event => {
 document.addEventListener('click', event => {
   const guideButton = event.target.closest('[data-guide]');
   if (guideButton) {
-    const guide = availableGuides().find(g => g.id === guideButton.dataset.guide);
+    const manualReference = guideButton.closest('#seasons-view:not([hidden])') && referenceSeason()?.guideIds.includes(guideButton.dataset.guide);
+    const guide = (manualReference ? guides : availableGuides()).find(g => g.id === guideButton.dataset.guide);
     if (!guide) return;
     $('#guide-dialog').dataset.guideId = guide.id;
     $('#dialog-title').textContent = guide.title;
